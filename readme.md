@@ -33,8 +33,8 @@ FEATURES:
 - local session history - conversation won't be lost if server restarts. Separated history between users and chars.
 - nice "X typing" during generating (users will not think that bot stucking)
 - buttons: continue previous message, regenerate last message, remove last messages from history, reset history button, new char loading menu
-- you can load new characters from text-generation-webui\characters with "/load" command!!!
-- you can load new model during conversation with /models 
+- you can load new characters from text-generation-webui\characters with button
+- you can load new model during conversation with button
 - chatting # prefix for impersonate: "#You" or "#Castle guard" or "#Alice thoughts about me"
 - "!" prefix to replace last bot message
 - "++" prefix permanently replace bot name during chat (switch conversation to another character)
