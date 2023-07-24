@@ -80,4 +80,8 @@ telegram_config.cfg
   stopping_strings=<END>,<START>,end{code}
 	generating settings
   eos_token=None
+	generating settings
+  translation_as_hidden_text=on
+	if on and model/user lang not the same - translation will be writed under spoiler. If off - translation without spoiler, no original text in message.
+
 ```
