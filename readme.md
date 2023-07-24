@@ -70,13 +70,13 @@ telegram_config.cfg
 	html_tag_open=<pre>
 	html_tag_close=</pre>
 		tags for bot answers in tg. By default - preformatted text (pre)
-	history_dir_path=extensions/telegram_bot/history
+	history_dir_path=history
 		directory for users history
-	token_file_path=extensions/telegram_bot/telegram_token.txt
+	token_file_path=telegram_token.txt
 		bot token. Ask https://t.me/BotFather
-	admins_file_path=extensions/telegram_bot/telegram_admins.txt
+	admins_file_path=telegram_admins.txt
 		users whos id's in admins_file switched to admin mode and can choose settings-for-all (generating settings and model)
-	users_file_path=extensions/telegram_bot/telegram_users.txt
+	users_file_path=telegram_users.txt
 		if just one id in users_file - bot will ignore all users except this id (id's). Even admin will be ignored
 	stopping_strings=<END>,<START>,end{code}
 	eos_token=None
