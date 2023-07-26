@@ -24,6 +24,7 @@ except ImportError:
     from TelegramBotSilero import Silero as Silero
 
 
+
 class TelegramBotWrapper:
     # Default error messages
     GENERATOR_FAIL = "<GENERATION FAIL>"
@@ -202,6 +203,8 @@ class TelegramBotWrapper:
         self.users_file_path = users_file_path
         # Set bot mode
         self.bot_mode = bot_mode
+        self.generator_script = ""
+        self.model_path = ""
         # Set default character json file
         self.default_char = default_char
         self.default_preset = default_preset
@@ -214,6 +217,7 @@ class TelegramBotWrapper:
         self.load_config_file(config_file_path)
         self.load_preset(self.default_preset)
         self.silero = Silero()
+        Generator.init(self.generator_script, self.model_path)
 
     def load_config_file(self, config_file_path: str):
         if os.path.exists(config_file_path):
@@ -221,6 +225,10 @@ class TelegramBotWrapper:
                 for s in config_file_path.read().replace("\r", "").split("\n"):
                     if "=" in s and s.split("=")[0] == "bot_mode":
                         self.bot_mode = s.split("=")[-1]
+                    if "=" in s and s.split("=")[0] == "generator_script":
+                        self.generator_script = s.split("=")[-1]
+                    if "=" in s and s.split("=")[0] == "model_path":
+                        self.model_path = s.split("=")[-1]
                     if "=" in s and s.split("=")[0] == "default_preset":
                         self.default_preset = s.split("=")[-1]
                     if "=" in s and s.split("=")[0] == "default_char":

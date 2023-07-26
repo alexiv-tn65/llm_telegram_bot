@@ -4,16 +4,13 @@ import os
 
 class Generator:
     #  Place where path to LLM file stored
-    telegram_llm_model_path_file = "telegram_llm_model_path.txt"
     llm: Llama = None
-    n_ctx = 8196
-    seed = 0
-    n_gpu_layers = 0
 
-    def __init__(self, telegram_llm_model_path_file: str, n_ctx=2048, seed=0, n_gpu_layers=0):
-        with open(telegram_llm_model_path_file, "r") as model_path_file:
-            data = model_path_file.read().rstrip()
-            self.llm = Llama(model_path=data, n_ctx=n_ctx, seed=seed, n_gpu_layers=n_gpu_layers)
+    def __init__(self, model_path: str, n_ctx=4096, seed=0, n_gpu_layers=0):
+        self.n_ctx = n_ctx
+        self.seed = seed
+        self.n_gpu_layers = n_gpu_layers
+        self.llm = Llama(model_path=model_path, n_ctx=n_ctx, seed=seed, n_gpu_layers=n_gpu_layers)
 
     def get_answer(self,
                    prompt,
