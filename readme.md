@@ -24,7 +24,7 @@ pip install -r llm_telegram_bot\requirements.txt
 HOW TO USE:
 1) add your bot token to llm_telegram_bot/telegram_token.txt (ask https://t.me/BotFather how to get token)
 2) add your model bin file to llm_telegram_bot/models
-3) write path to your bin model file in llm_telegram_bot/telegram_llm_model_path.txt
+3) write path to your bin model file in telegram_config.cfg - model_path
 2) run "python llm_telegram_bot/main.py"
 
 FEATURES:
@@ -100,6 +100,4 @@ telegram_users.txt
 telegram_token.txt
 	telegram bot token
 
-telegram_llm_model_path.txt
-	path to llm model file/dir
 ```
