@@ -8,7 +8,7 @@ REQUIREMENTS:
 - python-telegram-bot==13.15
 - pyyaml
 - deep-translator==1.9.2
-- llm_python
+- llama-cpp-python
 
 HOW TO INSTALL:
 1) clone this repo to "text-generation-webui\extensions"
@@ -58,6 +58,13 @@ telegram_config.cfg
 		- persona - same as chat-restricted, but reset/regenerate/delete message are unavailable too. 
 		- notebook - notebook-like mode. Prefixes wont added automaticaly, only "\n" separate user and bot messages. Restriction like chat mode.
 		- query - same as notebook, but without history. Each question for bot is like new convrsation withot influence of previous questions
+    generator_script=GeneratorLlamaCpp
+        name of generator script (generators folder):
+            - GeneratorLlamaCpp - based on llama-cpp-python, recommended
+            - GeneratorLangchainLlamaCpp - based in langchain+llama
+            - GeneratorTransformers - based on transformers, untested
+    model_path=models\llama-13b.ggml.q4_0.bin
+        path to model .bin file
 	characters_dir_path=characters
 	default_char=Example.yaml
 		default cahracter and path to cahracters folder
