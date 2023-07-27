@@ -51,13 +51,14 @@ CONFIGURATION:
 telegram_config.cfg
 ```
 telegram_config.cfg
-	bot_mode=admin  
-		- admin - bot answer for everyone in chat-like mode. All buttons, include settings-for-all are avariable for everyone. (Default)
-		- chat - bot answer for everyone in chat-like mode. All buttons, exclude settings-for-all are avariable for everyone. (Recommended for chatting)
-		- chat-restricted - same as chat, but user can't change default character
-		- persona - same as chat-restricted, but reset/regenerate/delete message are unavailable too. 
-		- notebook - notebook-like mode. Prefixes wont added automaticaly, only "\n" separate user and bot messages. Restriction like chat mode.
-		- query - same as notebook, but without history. Each question for bot is like new convrsation withot influence of previous questions
+    bot_mode=admin  
+        specific bot mode. admin for personal use
+            - admin - bot answer for everyone in chat-like mode. All buttons, include settings-for-all are avariable for everyone. (Default)
+            - chat - bot answer for everyone in chat-like mode. All buttons, exclude settings-for-all are avariable for everyone. (Recommended for chatting)
+            - chat-restricted - same as chat, but user can't change default character
+            - persona - same as chat-restricted, but reset/regenerate/delete message are unavailable too. 
+            - notebook - notebook-like mode. Prefixes wont added automaticaly, only "\n" separate user and bot messages. Restriction like chat mode.
+            - query - same as notebook, but without history. Each question for bot is like new convrsation withot influence of previous questions
     generator_script=GeneratorLlamaCpp
         name of generator script (generators folder):
             - GeneratorLlamaCpp - based on llama-cpp-python, recommended
