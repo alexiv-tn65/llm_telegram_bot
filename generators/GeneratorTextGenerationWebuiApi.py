@@ -5,7 +5,7 @@ import requests
 class Generator:
     model_change_allowed = False
 
-    def __init__(self, model_path=f'http://localhost:5000/api/v1/chat', n_ctx=1048):
+    def __init__(self, model_path=f'http://localhost:5000/api/v1/chat', n_ctx=2048):
         self.n_ctx = n_ctx
         if model_path.startswith('http'):
             self.URI = model_path
@@ -70,6 +70,9 @@ class Generator:
 
         if response.status_code == 200:
             result = response.json()['results'][0]['history']
+            print(json.dumps(result, indent=4))
+            print()
+            print()
             return result['visible'][-1][1]
         else:
             return default_answer
