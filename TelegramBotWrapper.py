@@ -11,7 +11,7 @@ from telegram.ext import CallbackContext, Filters, CommandHandler, MessageHandle
 from telegram.ext import Updater
 from telegram.error import BadRequest
 from telegram.constants import CHATACTION_TYPING
-from typing import Dict
+from typing import Dict, Tuple
 from deep_translator import GoogleTranslator as Translator
 
 try:
@@ -941,7 +941,7 @@ Language: {user.language}"""
 
     # =============================================================================
     # answer generator
-    def generate_answer(self, user_in, chat_id) -> tuple[str, False]:
+    def generate_answer(self, user_in, chat_id) -> Tuple[str, bool]:
         answer = self.GENERATOR_FAIL
         user = self.users[chat_id]
 
@@ -1135,7 +1135,7 @@ Language: {user.language}"""
         if self.check_user_rule(chat_id, self.BTN_PRESET_LIST):
             keyboard_raw.append(InlineKeyboardButton(
                 text="🔧Presets", callback_data=self.BTN_PRESET_LIST + "0"))
-        if self.check_user_rule(chat_id, self.BTN_MODEL_LIST):
+        if self.check_user_rule(chat_id, self.BTN_MODEL_LIST) and Generator.generator.model_change_allowed:
             keyboard_raw.append(InlineKeyboardButton(
                 text="🔨Model", callback_data=self.BTN_MODEL_LIST + "0"))
         if self.check_user_rule(chat_id, self.BTN_DELETE):
