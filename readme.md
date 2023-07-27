@@ -63,6 +63,8 @@ telegram_config.cfg
             - GeneratorLlamaCpp - based on llama-cpp-python, recommended
             - GeneratorLangchainLlamaCpp - based in langchain+llama
             - GeneratorTransformers - based on transformers, untested
+            - GeneratorTextGenerationWebui - module to integrate in oobabooga/text-generation-webui 
+            - GeneratorTextGenerationWebuiApi - use oobabooga/text-generation-webui API extension
     model_path=models\llama-13b.ggml.q4_0.bin
         path to model .bin file
 	characters_dir_path=characters
