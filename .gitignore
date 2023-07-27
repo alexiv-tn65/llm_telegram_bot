@@ -1,4 +1,6 @@
 telegram_token.txt
 telegram_users.txt
 telegram_admins.txt
-models\*
+models/*
+characters/*.yaml
+characters/*.json

@@ -5,9 +5,12 @@ import requests
 class Generator:
     model_change_allowed = False
 
-    def __init__(self, model_path=f'http://localhost:5000/api/v1/chat', ):
-        self.URI = model_path
-        pass
+    def __init__(self, model_path=f'http://localhost:5000/api/v1/chat', n_ctx=2048):
+        self.n_ctx = n_ctx
+        if model_path.startswith('http'):
+            self.URI = model_path
+        else:
+            self.URI = f'http://localhost:5000/api/v1/chat'
 
     def get_answer(
             self,
@@ -21,7 +24,7 @@ class Generator:
         request = {
             'user_input': prompt,
             'max_new_tokens': 250,
-            'history': "",
+            'history': {'internal': [], 'visible': []},
             'mode': 'instruct',  # Valid options: 'chat', 'chat-instruct', 'instruct'
             'character': 'Example',
             # 'instruction_template': 'Vicuna-v1.1',  # Will get autodetected if unset
@@ -58,10 +61,10 @@ class Generator:
 
             'seed': -1,
             'add_bos_token': True,
-            'truncation_length': 2048,
+            'truncation_length': self.n_ctx,
             'ban_eos_token': False,
             'skip_special_tokens': True,
-            'stopping_strings': []
+            'stopping_strings': stopping_strings
         }
         response = requests.post(self.URI, json=request)
 
