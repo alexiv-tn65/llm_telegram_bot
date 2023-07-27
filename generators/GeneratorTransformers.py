@@ -9,12 +9,11 @@ class Generator:
     seed = 0
     n_gpu_layers = 0
 
-    def __init__(self, telegram_llm_model_path_file, n_ctx, seed, n_gpu_layers):
-        model = "pranavpsv/gpt2-genre-story-generator"
-        self.tokenizer = AutoTokenizer.from_pretrained(model)
+    def __init__(self, model_path, n_ctx, seed, n_gpu_layers):
+        self.tokenizer = AutoTokenizer.from_pretrained(model_path)
         self.pipeline = transformers.pipeline(
             "text-generation",
-            model=model,
+            model=model_path,
             device_map="auto",
         )
 

@@ -16,11 +16,9 @@ llm = None
 class Generator:
     llm: LlamaCpp
 
-    def __init__(self, telegram_llm_model_path_file, n_ctx=2048, seed=0, n_gpu_layers=0):
+    def __init__(self, model_path, n_ctx=2048, seed=0, n_gpu_layers=0):
         callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])
-        with open(telegram_llm_model_path_file, "r") as model_path_file:
-            data = model_path_file.read().rstrip()
-            self.llm = LlamaCpp(model_path=data, n_ctx=n_ctx, callback_manager=callback_manager, verbose=True)
+        self.llm = LlamaCpp(model_path=model_path, n_ctx=n_ctx, callback_manager=callback_manager, verbose=True)
 
     def get_answer(self,
                    prompt,
