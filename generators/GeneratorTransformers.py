@@ -1,13 +1,9 @@
 from transformers import AutoTokenizer
 import transformers
-import torch
-import os
 
 
 class Generator:
-    n_ctx = 8196
-    seed = 0
-    n_gpu_layers = 0
+    model_change_allowed = False
 
     def __init__(self, model_path, n_ctx, seed, n_gpu_layers):
         self.tokenizer = AutoTokenizer.from_pretrained(model_path)
