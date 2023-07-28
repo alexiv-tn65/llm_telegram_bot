@@ -15,7 +15,7 @@ llm = None
 
 class Generator:
     llm: LlamaCpp
-    model_change_allowed = False
+    model_change_allowed = False  # if model changing allowed without stopping.
 
     def __init__(self, model_path, n_ctx=2048, seed=0, n_gpu_layers=0):
         callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])

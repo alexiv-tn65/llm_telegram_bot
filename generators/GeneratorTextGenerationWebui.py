@@ -8,7 +8,7 @@ from modules import shared
 
 
 class Generator:
-    model_change_allowed = True
+    model_change_allowed = True  # if model changing allowed without stopping.
 
     def __init__(self, model_path, n_ctx, seed, n_gpu_layers):
         pass
