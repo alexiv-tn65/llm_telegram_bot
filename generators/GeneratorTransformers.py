@@ -3,7 +3,7 @@ import transformers
 
 
 class Generator:
-    model_change_allowed = False
+    model_change_allowed = False  # if model changing allowed without stopping.
 
     def __init__(self, model_path, n_ctx, seed, n_gpu_layers):
         self.tokenizer = AutoTokenizer.from_pretrained(model_path)

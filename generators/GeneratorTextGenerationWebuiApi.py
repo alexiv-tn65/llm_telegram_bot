@@ -3,7 +3,7 @@ import requests
 
 
 class Generator:
-    model_change_allowed = False
+    model_change_allowed = False  # if model changing allowed without stopping.
 
     def __init__(self, model_path=f'http://localhost:5000/api/v1/chat', n_ctx=2048):
         self.n_ctx = n_ctx
