@@ -62,7 +62,7 @@ def get_answer(
 
 
 def tokens_count(text: str):
-    """return string length in tokens
+    """Return string length in tokens
 
     Args:
       text: text to be counted
@@ -74,7 +74,7 @@ def tokens_count(text: str):
 
 
 def get_model_list():
-    """list of available models
+    """Return list of available models
 
     Returns:
       list of available models
@@ -83,7 +83,7 @@ def get_model_list():
 
 
 def load_model(model_file: str):
-    """change current llm model to model_file
+    """Change current llm model to model_file
 
     Args:
       model_file: model file to be loaded
