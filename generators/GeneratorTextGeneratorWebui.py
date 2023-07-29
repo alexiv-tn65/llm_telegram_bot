@@ -8,25 +8,22 @@ from modules import shared
 
 
 class Generator:
-    model_change_allowed = True  # if model changing allowed without stopping.
+    model_change_allowed = False  # if model changing allowed without stopping.
+    preset_change_allowed = True  # if preset changing allowed.
 
-    def __init__(self, model_path, n_ctx, seed, n_gpu_layers):
+    def __init__(self, model_path='', n_ctx=2048):
         pass
 
-    def get_answer(self,
-                   prompt,
-                   generation_params,
-                   eos_token,
-                   stopping_strings,
-                   default_answer,
-                   user,
-                   turn_template='',
-                   **kwargs):
+    @staticmethod
+    def get_answer(
+            prompt,
+            generation_params,
+            eos_token,
+            stopping_strings,
+            default_answer,
+            turn_template='',
+            **kwargs):
         generation_params.update({"turn_template": turn_template})
-        generation_params.update({"name1": user['name1']})
-        generation_params.update({"name2": user['name2']})
-        generation_params.update({"context": user['context']})
-        generation_params.update({"greeting": user['greeting']})
         generation_params.update({"stream": False,
                                   'max_new_tokens': int(generation_params.get('max_new_tokens',
                                                                               generation_params.get('max_length',
@@ -79,13 +76,16 @@ class Generator:
         # make adds
         return answer
 
-    def tokens_count(self, text: str):
+    @staticmethod
+    def tokens_count(text: str):
         return len(encode(text)[0])
 
-    def get_model_list(self):
+    @staticmethod
+    def get_model_list():
         return get_available_models()
 
-    def load_model(self, model_file: str):
+    @staticmethod
+    def load_model(model_file: str):
         server.unload_model()
         server.model_name = model_file
         if model_file != '':
