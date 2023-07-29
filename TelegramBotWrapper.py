@@ -769,7 +769,7 @@ Language: {user.language}"""
         user = self.users[chat_id]
         # add pretty "retyping" to message text
         # remove last bot answer, read and remove last user reply
-        user_in = user.truncate_history()
+        user_in = user.truncate_only_history()
         # get answer and replace message text!
         answer, _ = self.generate_answer(user_in=user_in, chat_id=chat_id)
         self.edit(
@@ -819,7 +819,7 @@ Language: {user.language}"""
         user = self.users[chat_id]
         if user.msg_id:
             self.clean_last_message_markup(context, chat_id)
-        user.clear()
+        user.reset()
         user.load_character_file(self.characters_dir_path, user.char_file)
         send_text = self.make_template_message("mem_reset", chat_id)
         context.bot.send_message(
