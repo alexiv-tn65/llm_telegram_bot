@@ -2,13 +2,20 @@ This is manual about telegram buttons, prefixes and functions.
 
 # Start conversation:
 After /start interaction with bot first time, bot sends you default char greeting with option menu:
+
 ![Image1](https://raw.githubusercontent.com/innightwolfsleep/llm_telegram_bot/manual/manuals/telegram_bot_start_option.PNG)
+
 To get first answer just write something (but not single emoji or sticker)
+
 ![Image1](https://raw.githubusercontent.com/innightwolfsleep/llm_telegram_bot/manual/manuals/telegram_bot_message.PNG)
+
 Here you are! Answer with message buttons!
 
+
 # Buttons:
+
 ![Image1](https://raw.githubusercontent.com/innightwolfsleep/llm_telegram_bot/manual/manuals/telegram_bot_message_narrow.png)
+
 Message buttons. There can be only one message in conversation with "message buttons", so message keyboard always moves to last bot message.
 - "▶Next" - this button call next message from bot, like an empty input from you.
 - "➡Continue" - seems like Next button, but call not new message - but continuing of current.
@@ -16,8 +23,10 @@ Message buttons. There can be only one message in conversation with "message but
 - "♻Regenerate" - last message will be generated again, so result can be different. 
 - "✖Cutoff" - last message to be deleted. Message keyboard moves to previous bot answer.
 - "⚙Options" - call option menu
+- 
 ![Image1](https://raw.githubusercontent.com/innightwolfsleep/llm_telegram_bot/manual/manuals/telegram_bot_start_option_narrow.PNG)
-Option buttons can be called in any moment, multiply times.
+
+- Option buttons can be called in any moment, multiply times.
 - "💾Save" - save whole conversation and some settings to .json file and send in chat. Forward this json file to chat to load old conversation.
 - "🎭Chars" - show list of available characters. Click and enjoy!
 - "⚠Reset" - if current conversation goes wrong - you can reset it and get greeting again.
