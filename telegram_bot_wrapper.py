@@ -225,7 +225,7 @@ class TelegramBotWrapper:
 
     # =============================================================================
     # Run bot with token! Initiate updater obj!
-    def run_telegram_bot(self, bot_token=None, token_file_name=None):
+    def run_telegram_bot(self, bot_token="", token_file_name=""):
         """
         Start the Telegram bot.
         :param bot_token: (str) The Telegram bot token. If not provided, try to read it from `token_file_name`.
