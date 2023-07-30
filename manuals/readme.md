@@ -18,39 +18,22 @@ Message buttons. There can be only one message in conversation with "message but
 - "⚙Options" - call option menu
 ![Image1](https://raw.githubusercontent.com/innightwolfsleep/llm_telegram_bot/manual/manuals/telegram_bot_start_option_narrow.PNG)
 Option buttons can be called in any moment, multiply times.
-- "💾Save"
-- "🎭Chars"
-- "⚠Reset"
-- "🇯🇵Language"
-- "🔈Voice"
-- "🔧Presets"
-- "🔨Model"
-- "❌Close"
+- "💾Save" - save whole conversation and some settings to .json file and send in chat. Forward this json file to chat to load old conversation.
+- "🎭Chars" - show list of available characters. Click and enjoy!
+- "⚠Reset" - if current conversation goes wrong - you can reset it and get greeting again.
+- "🇯🇵Language" - you can choose langauage to translate. Translation will be under spoilers (this can be changed in config)
+- "🔈Voice" - you can switch on voice generating and choose voices (man or woman)! 
+- "🔧Presets" - if you are admin - you can choose generating preset (applied for all users)
+- "🔨Model" - if you are admin - you can switch generator model (if available for generator type, applied for all users) 
+- "❌Close" - just delete this option message to keep chat clear.
 
-
-
+# Prefixes:
+- "+", "#" [name or situation] - change character name for next message. 
+- "++" [new name] - permanently change character name 
+- "-", "!" [corrected message] - replace last bot message on yours. If you wanna force switch conversation direction.
+- "📷","📸","📹","🎥","📽" [name or situation] - call image of something/someone. (Stable diffusion with --api should be run)
 
 # How to maximize your conversation?
 - Use prefixes
 - Use "Regenerate", "Cutoff" and "Next" buttons if conversation goes wrong way! 
 - Do not forget about save/load.
-- 
-
-- session for all users are separative (by chat_id)
-- local session history - conversation won't be lost if server restarts. Separated history between users and chars.
-- nice "X typing" during generating (users will not think that bot stucking)
-- buttons: continue previous message, regenerate last message, remove last messages from history, reset history button, new char loading menu
-- you can load new characters from text-generation-webui\characters with button
-- you can load new model during conversation with button
-- chatting # prefix for impersonate: "#You" or "#Castle guard" or "#Alice thoughts about me"
-- "!" prefix to replace last bot message
-- "++" prefix permanently replace bot name during chat (switch conversation to another character)
-- "📷" prefix to make photo via SD api. Write like "📷Chiharu Yamada", not single "📷"
-- save/load history in chat by downloading/forwarding to chat .json file
-- integrated auto-translate (you can set model/user language parameter) 
-- voice generating ([silero](https://github.com/snakers4/silero-models)), en and ru variants
-- translation_as_hidden_text option in .cfg - if you want to learn english with bot)))
-- telegram_users.txt - list of permitted users (if empty - permit for all)
-- antiflood - one message per 15 sec from one user
-
-
