@@ -4,6 +4,8 @@ deep-translator==1.9.2
 omegaconf
 llama-cpp-python
 num2words
-#langchain
-#transformers
-#torch
+transformers
+langchain
+requests
+Pillow
+torch

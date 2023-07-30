@@ -18,10 +18,12 @@ try:
     from extensions.telegram_bot.TelegramBotUser import TelegramBotUser as User
     import extensions.telegram_bot.TelegramBotGenerator as Generator
     from extensions.telegram_bot.TelegramBotSilero import Silero as Silero
+    from extensions.telegram_bot.TelegramBotSdApi import SdApi as SdApi
 except ImportError:
     from TelegramBotUser import TelegramBotUser as User
     import TelegramBotGenerator as Generator
     from TelegramBotSilero import Silero as Silero
+    from TelegramBotSdApi import SdApi as SdApi
 
 
 class TelegramBotWrapper:
@@ -69,9 +71,9 @@ class TelegramBotWrapper:
     permanent_user_prefixes = ["+="]
     permanent_contex_add = ["+-"]  # Prefix for adding string to context
     # Prefix for sd api generation
-    sd_api_prefixes = ["@", "📷", "📸", "📹", "🎥", "📽", ]
-    sd_api_prompt_of = "Provide a detailed and vivid description of "
-    sd_api_prompt_self = "Provide a detailed description of appearance, surroundings and what doing right now"
+    sd_api_prefixes = ["📷", "📸", "📹", "🎥", "📽", ]
+    sd_api_prompt_of = "(Detailed description of appearance, outfit and surroundings of OBJECT:"
+    sd_api_prompt_self = "(Detailed description of appearance, surroundings and what doing right now:"
     # Language list
     language_dict = {
         "en": "🇬🇧",
@@ -119,22 +121,28 @@ class TelegramBotWrapper:
                  config_file_path="configs/telegram_config.json",
                  generator_params_file_path="configs/telegram_generator_params.json",
                  user_rules_file_path="configs/telegram_user_rules.json",
+                 sd_api_url="http://127.0.0.1:7860",
+                 sd_config_file_path="configs/telegram_sd_config.json",
                  ):
-        """
-        Init telegram bot class. Use run_telegram_bot() to initiate bot.
-        :param bot_mode: bot mode (chat, chat-restricted, notebook, persona). Default is "chat".
-        :param default_char: name of default character.json file. Default is "chat".
-        :param default_preset: name of default preset file.
-        :param model_lang: language of model
-        :param user_lang: language of conversation
-        :param characters_dir_path: place where stored characters .json files. Default is "chat".
-        :param presets_dir_path: path to presets generation presets.
-        :param history_dir_path: place where stored chat history. Default is "extensions/telegram_bot/history".
-        :param token_file_path: path to token file. Default is "extensions/telegram_bot/telegram_token.txt".
-        :param admins_file_path: path to admins file - user separated by "\n"
-        :param users_file_path: permitted users separated by "\n". If empty - no restriction
-        :param config_file_path: path to config file
-        :return: None
+        """Init telegram bot class. Use run_telegram_bot() to initiate bot.
+
+        Args
+            bot_mode: bot mode (chat, chat-restricted, notebook, persona). Default is "chat".
+            default_char: name of default character.json file. Default is "chat".
+            default_preset: name of default preset file.
+            model_lang: language of model
+            user_lang: language of conversation
+            characters_dir_path: place where stored characters .json files. Default is "chat".
+            presets_dir_path: path to presets generation presets.
+            history_dir_path: place where stored chat history. Default is "extensions/telegram_bot/history".
+            token_file_path: path to token file. Default is "extensions/telegram_bot/telegram_token.txt".
+            admins_file_path: path to admins file - user separated by "\n"
+            users_file_path: permitted users separated by "\n". If empty - no restriction (whitelist)
+            config_file_path: path to config file
+            generator_params_file_path: llm generation config path
+            user_rules_file_path: user rule matrix
+            sd_api_url: url if sd api uses for generating images
+            sd_config_file_path: config for sd api
         """
         # Set paths to history, default token file, characters dir
         self.history_dir_path = history_dir_path
@@ -146,6 +154,8 @@ class TelegramBotWrapper:
         self.config_file_path = config_file_path
         self.generator_params_file_path = generator_params_file_path
         self.user_rules_file_path = user_rules_file_path
+        self.sd_api_url = sd_api_url
+        self.sd_config_file_path = sd_config_file_path
         # Set bot mode
         self.bot_mode = bot_mode
         self.generator_script = ""  # mode loaded from config
@@ -178,6 +188,8 @@ class TelegramBotWrapper:
             self.user_rules = {}
         # Silero initiate
         self.silero = Silero()
+        # SdApi initiate
+        self.SdApi = SdApi(self.sd_api_url, self.sd_config_file_path)
         # generator initiate
         Generator.init(self.generator_script, self.model_path)
 
@@ -198,6 +210,8 @@ class TelegramBotWrapper:
                 self.token_file_path = config.get("token_file_path", self.token_file_path)
                 self.admins_file_path = config.get("admins_file_path", self.admins_file_path)
                 self.users_file_path = config.get("users_file_path", self.users_file_path)
+                self.sd_api_url = config.get("sd_api_url", self.sd_api_url)
+                self.sd_config_file_path = config.get("sd_config_file_path", self.sd_config_file_path)
                 self.translation_as_hidden_text = config.get("translation_as_hidden_text",
                                                              self.translation_as_hidden_text)
                 self.stopping_strings = config.get("stopping_strings", self.stopping_strings)
@@ -429,6 +443,189 @@ class TelegramBotWrapper:
         else:
             return bool(self.user_rules[option][self.bot_mode])
 
+    # =============================================================================
+    # answer generator
+    def generate_answer(self, user_in, chat_id) -> Tuple[str, bool]:
+        answer = self.GENERATOR_FAIL
+        user = self.users[chat_id]
+
+        try:
+            # acquire generator lock if we can
+            self.generator_lock.acquire(timeout=self.generation_timeout)
+            # if generation will fail, return "fail" answer
+
+            # Preprocessing: add user_in to history in right order:
+            if user_in[:2] in self.permanent_impersonate_prefixes:
+                # If user_in starts with perm_prefix - just replace name2
+                user.name2 = user_in[2:]
+                return "New name: " + user.name2, True
+            if self.bot_mode in [self.MODE_QUERY]:
+                user.history = []
+            if self.bot_mode in [self.MODE_NOTEBOOK]:
+                # If notebook mode - append to history only user_in, no
+                # additional preparing;
+                user.user_in.append(user_in)
+                user.history.append('')
+                user.history.append(user_in)
+            elif user_in == self.GENERATOR_MODE_NEXT:
+                # if user_in is "" - no user text, it is like continue generation
+                # adding "" history line to prevent bug in history sequence,
+                # add "name2:" prefix for generation
+                user.user_in.append(user_in)
+                user.history.append("")
+                user.history.append(user.name2 + ":")
+            elif user_in == self.GENERATOR_MODE_CONTINUE:
+                # if user_in is "" - no user text, it is like continue generation
+                # adding "" history line to prevent bug in history sequence,
+                # add "name2:" prefix for generation
+                pass
+            elif user_in[0] in self.sd_api_prefixes:
+                # If user_in starts with prefix - impersonate-like (if you try to get "impersonate view")
+                # adding "" line to prevent bug in history sequence, user_in is
+                # prefix for bot answer
+                if len(user_in) == 1:
+                    user.user_in.append(user_in)
+                    user.history.append("")
+                    user.history.append(self.sd_api_prompt_self)
+                else:
+                    user.user_in.append(user_in)
+                    user.history.append("")
+                    user.history.append(self.sd_api_prompt_of.replace("OBJECT", user_in[1:].strip()))
+            elif user_in[0] in self.impersonate_prefixes:
+                # If user_in starts with prefix - impersonate-like (if you try to get "impersonate view")
+                # adding "" line to prevent bug in history sequence, user_in is
+                # prefix for bot answer
+                user.user_in.append(user_in)
+                user.history.append("")
+                user.history.append(user_in[1:] + ":")
+            elif user_in[0] in self.replace_prefixes:
+                # If user_in starts with replace_prefix - fully replace last
+                # message
+                user.user_in.append(user_in)
+                user.history[-1] = user_in[1:]
+                return user.history[-1], False
+            else:
+                # If not notebook/impersonate/continue mode then ordinary chat preparing
+                # add "name1&2:" to user and bot message (generation from name2
+                # point of view);
+                user.user_in.append(user_in)
+                user.history.append(user.name1 + ": " + user_in)
+                user.history.append(user.name2 + ":")
+
+            # Set eos_token and stopping_strings.
+            stopping_strings = self.stopping_strings.copy()
+            eos_token = self.eos_token
+            if self.bot_mode in [
+                    self.MODE_CHAT,
+                    self.MODE_CHAT_R,
+                    self.MODE_ADMIN]:
+                stopping_strings += ["\n" + user.name1 + ":", "\n" + user.name2 + ":", ]
+
+            # adjust context/greeting/example
+            if user.context.strip().endswith("\n"):
+                context = f"{user.context.strip()}"
+            else:
+                context = f"{user.context.strip()}\n"
+            if len(user.example) > 0:
+                example = user.example + "\n<START>\n"
+            else:
+                example = ""
+            if len(user.greeting) > 0:
+                greeting = "\n" + user.name2 + ": " + user.greeting
+            else:
+                greeting = ""
+            # Make prompt: context + example + conversation history
+            prompt = ""
+            available_len = self.generation_params["truncation_length"]
+            context_len = Generator.tokens_count(context)
+            available_len -= context_len
+            if available_len < 0:
+                available_len = 0
+                print("telegram_bot: ", chat_id, " - CONTEXT IS TOO LONG!!!")
+
+            conversation = [example, greeting] + user.history
+
+            for s in reversed(conversation):
+                s = "\n" + s if len(s) > 0 else s
+                s_len = Generator.tokens_count(s)
+                if available_len >= s_len:
+                    prompt = s + prompt
+                    available_len -= s_len
+                else:
+                    break
+            prompt = context + prompt.replace("\n\n", "\n")
+            # Generate!
+            answer = Generator.get_answer(
+                prompt=prompt,
+                generation_params=self.generation_params,
+                user=json.loads(user.to_json()),
+                eos_token=eos_token,
+                stopping_strings=stopping_strings,
+                default_answer=answer,
+                turn_template=user.turn_template)
+            # If generation result zero length - return  "Empty answer."
+            if len(answer) < 1:
+                answer = self.GENERATOR_EMPTY_ANSWER
+            # Final return
+            if answer not in [
+                    self.GENERATOR_EMPTY_ANSWER,
+                    self.GENERATOR_FAIL]:
+                # if everything ok - add generated answer in history and return
+                # last
+                for end in stopping_strings:
+                    if answer.endswith(end):
+                        answer = answer[:-len(end)]
+                user.history[-1] = user.history[-1] + " " + answer
+            return user.history[-1], False
+        except Exception as exception:
+            print("generate_answer", exception)
+        finally:
+            # anyway, release generator lock. Then return
+            self.generator_lock.release()
+
+    def prepare_text(
+            self,
+            original_text,
+            user_language="en",
+            direction="to_user"):
+        text = original_text
+        # translate
+        if self.model_lang != user_language:
+            try:
+                if direction == "to_model":
+                    text = Translator(
+                        source=user_language,
+                        target=self.model_lang).translate(text)
+                elif direction == "to_user":
+                    text = Translator(
+                        source=self.model_lang,
+                        target=user_language).translate(text)
+            except Exception as e:
+                text = "can't translate text:" + str(text)
+                print("translator_error", e)
+        # Add HTML tags and other...
+        if direction not in ["to_model", "no_html"]:
+            text = text.replace("#", "&#35;").replace("<", "&#60;").replace(">", "&#62;")
+            original_text = original_text.replace("#", "&#35;").replace("<", "&#60;").replace(">", "&#62;")
+            if self.model_lang != user_language and direction == "to_user" and self.translation_as_hidden_text == "on":
+                text = self.html_tag[0] + original_text + self.html_tag[1] + "\n" + \
+                    self.translate_html_tag[0] + text + self.translate_html_tag[1]
+            else:
+                text = self.html_tag[0] + text + self.html_tag[1]
+        return text
+
+    def send_sd_image(self, upd: Update, context: CallbackContext, answer, user_text):
+        chat_id = upd.message.chat.id
+        file_list = self.SdApi.txt_to_image(answer)
+        answer = answer.replace(self.sd_api_prompt_of.replace("OBJECT", user_text[1:].strip()), "")
+        answer = answer.split("\n")[0]
+        if len(file_list) > 0:
+            for image_path in file_list:
+                if os.path.exists(image_path):
+                    with open(image_path, "rb") as image_file:
+                        context.bot.send_photo(caption=answer, chat_id=chat_id, photo=image_file)
+                    os.remove(image_path)
+
     def send(self, context: CallbackContext, chat_id: int, text: str):
         user = self.users[chat_id]
         text = self.prepare_text(text, self.users[chat_id].language, "to_user")
@@ -532,6 +729,9 @@ class TelegramBotWrapper:
                 user_in=user_text, chat_id=chat_id)
             if system_message:
                 context.bot.send_message(text=answer, chat_id=chat_id)
+            elif user_text[0] in self.sd_api_prefixes:
+                self.send_sd_image(upd, context, answer, user_text)
+                user.truncate_only_history()
             else:
                 message = self.send(
                     text=answer, chat_id=chat_id, context=context)
@@ -574,7 +774,7 @@ class TelegramBotWrapper:
                     text=send_text, chat_id=chat_id, message_id=msg_id,
                     reply_markup=None, parse_mode="HTML")
             else:
-                self.handle_option(option, chat_id, upd, context)
+                self.handle_button_option(option, chat_id, upd, context)
                 self.users[chat_id].save_user_history(
                     chat_id, self.history_dir_path)
         except Exception as e:
@@ -582,7 +782,7 @@ class TelegramBotWrapper:
         finally:
             typing.clear()
 
-    def handle_option(self, option, chat_id, upd, context):
+    def handle_button_option(self, option, chat_id, upd, context):
         if option == self.BTN_RESET and self.check_user_rule(chat_id, option):
             self.reset_history_button(upd=upd, context=context)
         elif option == self.BTN_CONTINUE and self.check_user_rule(chat_id, option):
@@ -598,9 +798,9 @@ class TelegramBotWrapper:
         elif option == self.BTN_DOWNLOAD and self.check_user_rule(chat_id, option):
             self.download_json_button(upd=upd, context=context)
         elif option == self.BTN_OPTION and self.check_user_rule(chat_id, option):
-            self.options_button(upd=upd, context=context)
+            self.show_options_button(upd=upd, context=context)
         elif option == self.BTN_DELETE and self.check_user_rule(chat_id, option):
-            self.delete_button(upd=upd, context=context)
+            self.delete_pressed_button(upd=upd, context=context)
         elif option.startswith(self.BTN_CHAR_LIST) and self.check_user_rule(chat_id, option):
             self.keyboard_characters_button(
                 upd=upd, context=context, option=option)
@@ -626,7 +826,7 @@ class TelegramBotWrapper:
         elif option.startswith(self.BTN_VOICE_LOAD) and self.check_user_rule(chat_id, option):
             self.load_voice_button(upd=upd, context=context, option=option)
 
-    def options_button(self, upd: Update, context: CallbackContext):
+    def show_options_button(self, upd: Update, context: CallbackContext):
         chat_id = upd.callback_query.message.chat.id
         user = self.users[chat_id]
         history_tokens = -1
@@ -650,7 +850,7 @@ Language: {user.language}"""
             parse_mode="HTML")
 
     @staticmethod
-    def delete_button(upd: Update, context: CallbackContext):
+    def delete_pressed_button(upd: Update, context: CallbackContext):
         chat_id = upd.callback_query.message.chat.id
         message_id = upd.callback_query.message.message_id
         context.bot.deleteMessage(chat_id=chat_id, message_id=message_id)
@@ -1040,165 +1240,6 @@ Language: {user.language}"""
         context.bot.editMessageReplyMarkup(
             chat_id=chat_id, message_id=msg.message_id,
             reply_markup=voice_buttons)
-
-    # =============================================================================
-    # answer generator
-    def generate_answer(self, user_in, chat_id) -> Tuple[str, bool]:
-        answer = self.GENERATOR_FAIL
-        user = self.users[chat_id]
-
-        try:
-            # acquire generator lock if we can
-            self.generator_lock.acquire(timeout=self.generation_timeout)
-            # if generation will fail, return "fail" answer
-
-            # Preprocessing: add user_in to history in right order:
-            if user_in[:2] in self.permanent_impersonate_prefixes:
-                # If user_in starts with perm_prefix - just replace name2
-                user.name2 = user_in[2:]
-                return "New name: " + user.name2, True
-            if self.bot_mode in [self.MODE_QUERY]:
-                user.history = []
-            if self.bot_mode in [self.MODE_NOTEBOOK]:
-                # If notebook mode - append to history only user_in, no
-                # additional preparing;
-                user.user_in.append(user_in)
-                user.history.append('')
-                user.history.append(user_in)
-            elif user_in == self.GENERATOR_MODE_NEXT:
-                # if user_in is "" - no user text, it is like continue generation
-                # adding "" history line to prevent bug in history sequence,
-                # add "name2:" prefix for generation
-                user.user_in.append(user_in)
-                user.history.append("")
-                user.history.append(user.name2 + ":")
-            elif user_in == self.GENERATOR_MODE_CONTINUE:
-                # if user_in is "" - no user text, it is like continue generation
-                # adding "" history line to prevent bug in history sequence,
-                # add "name2:" prefix for generation
-                pass
-            elif user_in[0] in self.impersonate_prefixes:
-                # If user_in starts with prefix - impersonate-like (if you try to get "impersonate view")
-                # adding "" line to prevent bug in history sequence, user_in is
-                # prefix for bot answer
-                user.user_in.append(user_in)
-                user.history.append("")
-                user.history.append(user_in[1:] + ":")
-            elif user_in[0] in self.replace_prefixes:
-                # If user_in starts with replace_prefix - fully replace last
-                # message
-                user.user_in.append(user_in)
-                user.history[-1] = user_in[1:]
-                return user.history[-1], False
-            else:
-                # If not notebook/impersonate/continue mode then ordinary chat preparing
-                # add "name1&2:" to user and bot message (generation from name2
-                # point of view);
-                user.user_in.append(user_in)
-                user.history.append(user.name1 + ": " + user_in)
-                user.history.append(user.name2 + ":")
-
-            # Set eos_token and stopping_strings.
-            stopping_strings = self.stopping_strings.copy()
-            eos_token = self.eos_token
-            if self.bot_mode in [
-                    self.MODE_CHAT,
-                    self.MODE_CHAT_R,
-                    self.MODE_ADMIN]:
-                stopping_strings += ["\n" + user.name1 + ":", "\n" + user.name2 + ":", ]
-
-            # adjust context/greeting/example
-            if user.context.strip().endswith("\n"):
-                context = f"{user.context.strip()}"
-            else:
-                context = f"{user.context.strip()}\n"
-            if len(user.example) > 0:
-                example = user.example + "\n<START>\n"
-            else:
-                example = ""
-            if len(user.greeting) > 0:
-                greeting = "\n" + user.name2 + ": " + user.greeting
-            else:
-                greeting = ""
-            # Make prompt: context + example + conversation history
-            prompt = ""
-            available_len = self.generation_params["truncation_length"]
-            context_len = Generator.tokens_count(context)
-            available_len -= context_len
-            if available_len < 0:
-                available_len = 0
-                print("telegram_bot: ", chat_id, " - CONTEXT IS TOO LONG!!!")
-
-            conversation = [example, greeting] + user.history
-
-            for s in reversed(conversation):
-                s = "\n" + s if len(s) > 0 else s
-                s_len = Generator.tokens_count(s)
-                if available_len >= s_len:
-                    prompt = s + prompt
-                    available_len -= s_len
-                else:
-                    break
-            prompt = context + prompt.replace("\n\n", "\n")
-            # Generate!
-            answer = Generator.get_answer(
-                prompt=prompt,
-                generation_params=self.generation_params,
-                user=json.loads(user.to_json()),
-                eos_token=eos_token,
-                stopping_strings=stopping_strings,
-                default_answer=answer,
-                turn_template=user.turn_template)
-            # If generation result zero length - return  "Empty answer."
-            if len(answer) < 1:
-                answer = self.GENERATOR_EMPTY_ANSWER
-            # Final return
-            if answer not in [
-                    self.GENERATOR_EMPTY_ANSWER,
-                    self.GENERATOR_FAIL]:
-                # if everything ok - add generated answer in history and return
-                # last
-                for end in stopping_strings:
-                    if answer.endswith(end):
-                        answer = answer[:-len(end)]
-                user.history[-1] = user.history[-1] + " " + answer
-            return user.history[-1], False
-        except Exception as exception:
-            print("generate_answer", exception)
-        finally:
-            # anyway, release generator lock. Then return
-            self.generator_lock.release()
-
-    def prepare_text(
-            self,
-            original_text,
-            user_language="en",
-            direction="to_user"):
-        text = original_text
-        # translate
-        if self.model_lang != user_language:
-            try:
-                if direction == "to_model":
-                    text = Translator(
-                        source=user_language,
-                        target=self.model_lang).translate(text)
-                elif direction == "to_user":
-                    text = Translator(
-                        source=self.model_lang,
-                        target=user_language).translate(text)
-            except Exception as e:
-                text = "can't translate text:" + str(text)
-                print("translator_error", e)
-        # Add HTML tags and other...
-        if direction not in ["to_model", "no_html"]:
-            text = text.replace("#", "&#35;").replace("<", "&#60;").replace(">", "&#62;")
-            original_text = original_text.replace("#", "&#35;").replace("<", "&#60;").replace(">", "&#62;")
-            if self.model_lang != user_language and direction == "to_user" and self.translation_as_hidden_text == "on":
-                text = self.html_tag[0] + original_text + self.html_tag[1] + "\n" + \
-                    self.translate_html_tag[0] + text + self.translate_html_tag[1]
-            else:
-                text = self.html_tag[0] + text + self.html_tag[1]
-        return text
 
     # =============================================================================
     # load characters char_file from ./characters
