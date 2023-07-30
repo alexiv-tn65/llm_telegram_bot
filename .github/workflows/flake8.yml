@@ -20,4 +20,4 @@ jobs:
         pip install flake8==3.9.0 wemake-python-styleguide==0.15.3 flake8-bandit==2.1.2 bandit==1.7.2
     - name: Analysing the code with flake8
       run: |
-        flake8 *.py'
+        flake8 *.py
