@@ -184,13 +184,14 @@ class TelegramBotWrapper:
             with open(self.user_rules_file_path, "r") as user_rules_file:
                 self.user_rules = json.loads(user_rules_file.read())
         else:
-            print("Cant find user_rules_file_path")
+            print("Cant find user_rules_file_path: " + self.user_rules_file_path)
             self.user_rules = {}
         # Silero initiate
         self.silero = Silero()
         # SdApi initiate
         self.SdApi = SdApi(self.sd_api_url, self.sd_config_file_path)
         # generator initiate
+        print("Telegram bot generator script: ", self.generator_script)
         Generator.init(self.generator_script, self.model_path)
 
     def load_config_file(self, config_file_path: str):
@@ -210,12 +211,16 @@ class TelegramBotWrapper:
                 self.token_file_path = config.get("token_file_path", self.token_file_path)
                 self.admins_file_path = config.get("admins_file_path", self.admins_file_path)
                 self.users_file_path = config.get("users_file_path", self.users_file_path)
+                self.generator_params_file_path = config.get("generator_params_file_path", self.generator_params_file_path)
+                self.user_rules_file_path = config.get("user_rules_file_path", self.user_rules_file_path)
                 self.sd_api_url = config.get("sd_api_url", self.sd_api_url)
                 self.sd_config_file_path = config.get("sd_config_file_path", self.sd_config_file_path)
                 self.translation_as_hidden_text = config.get("translation_as_hidden_text",
                                                              self.translation_as_hidden_text)
                 self.stopping_strings = config.get("stopping_strings", self.stopping_strings)
                 self.eos_token = config.get("eos_token", self.eos_token)
+        else:
+            print("Cant find config_file " + config_file_path)
 
     # =============================================================================
     # Run bot with token! Initiate updater obj!
@@ -458,6 +463,7 @@ class TelegramBotWrapper:
             if user_in[:2] in self.permanent_impersonate_prefixes:
                 # If user_in starts with perm_prefix - just replace name2
                 user.name2 = user_in[2:]
+                self.generator_lock.release()
                 return "New name: " + user.name2, True
             if self.bot_mode in [self.MODE_QUERY]:
                 user.history = []
@@ -503,6 +509,7 @@ class TelegramBotWrapper:
                 # message
                 user.user_in.append(user_in)
                 user.history[-1] = user_in[1:]
+                self.generator_lock.release()
                 return user.history[-1], False
             else:
                 # If not notebook/impersonate/continue mode then ordinary chat preparing
@@ -576,10 +583,10 @@ class TelegramBotWrapper:
                     if answer.endswith(end):
                         answer = answer[:-len(end)]
                 user.history[-1] = user.history[-1] + " " + answer
+            self.generator_lock.release()
             return user.history[-1], False
         except Exception as exception:
             print("generate_answer", exception)
-        finally:
             # anyway, release generator lock. Then return
             self.generator_lock.release()
 
@@ -723,8 +730,10 @@ class TelegramBotWrapper:
             self.init_check_user(chat_id)
             user = self.users[chat_id]
             # Generate answer and replace "typing" message with it
+            print("user_text", user_text)
             user_text = self.prepare_text(
                 user_text, self.users[chat_id].language, "to_model")
+            print("user_text", user_text)
             answer, system_message = self.generate_answer(
                 user_in=user_text, chat_id=chat_id)
             if system_message:
