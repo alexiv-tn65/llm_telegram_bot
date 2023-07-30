@@ -1,6 +1,6 @@
 {
 	"bot_mode": "admin",
-	"generator_script": "GeneratorLlamaCpp",
+	"generator_script": "generator_llama_cpp",
 	"model_path": "models\\llama-2-7b-chat.ggmlv3.q4_0.bin",
 	"characters_dir_path": "characters",
 	"default_char": "Example.yaml",
