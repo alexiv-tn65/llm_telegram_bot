@@ -1,19 +1,23 @@
+import sys
 from threading import Thread
-from TelegramBotWrapper import TelegramBotWrapper
+from telegram_bot_wrapper import TelegramBotWrapper
 
 
-def run_server():
+def run_server(token):
     # create TelegramBotWrapper instance
     # by default, read parameters in telegram_config.cfg
     tg_server = TelegramBotWrapper()
-    # by default - read token from extensions/telegram_bot/telegram_token.txt
-    tg_server.run_telegram_bot()
+    # by default - read token from telegram_token.txt
+    tg_server.run_telegram_bot(bot_token=str(token))
 
 
-def setup():
-    Thread(target=run_server).start()
+def setup(token=None):
+    Thread(target=run_server, args=token).start()
 
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    setup()
+    if len(sys.argv) > 1:
+        setup(sys.argv[1])
+    else:
+        setup()
