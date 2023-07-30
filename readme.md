@@ -38,6 +38,7 @@ FEATURES:
 - chatting # prefix for impersonate: "#You" or "#Castle guard" or "#Alice thoughts about me"
 - "!" prefix to replace last bot message
 - "++" prefix permanently replace bot name during chat (switch conversation to another character)
+- "📷" prefix to make photo via SD api. Write like "📷Chiharu Yamada", not single "📷"
 - save/load history in chat by downloading/forwarding to chat .json file
 - integrated auto-translate (you can set model/user language parameter) 
 - voice generating ([silero](https://github.com/snakers4/silero-models)), en and ru variants
