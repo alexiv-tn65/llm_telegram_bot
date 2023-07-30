@@ -28,6 +28,8 @@ Option buttons can be called in any moment, multiply times.
 - "❌Close"
 
 
+
+
 # How to maximize your conversation?
 - Use prefixes
 - Use "Regenerate", "Cutoff" and "Next" buttons if conversation goes wrong way! 
