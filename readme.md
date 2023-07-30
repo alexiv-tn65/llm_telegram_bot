@@ -2,7 +2,7 @@
 -
 ![Image1](https://github.com/innightwolfsleep/storage/raw/main/textgen_telegram.PNG)
 
-Providing chat like telegram bot interface with [abetlen/llm_python](https://github.com/abetlen/llm_python), [langchain](https://pypi.org/project/langchain/) or transformers (tbc) 
+Providing chat like telegram bot interface with [abetlen/llama-cpp-python](https://github.com/abetlen/llama-cpp-python), [langchain](https://pypi.org/project/langchain/) or transformers (tbc) 
 
 REQUIREMENTS:
 - python-telegram-bot==13.15
