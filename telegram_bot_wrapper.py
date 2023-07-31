@@ -60,6 +60,10 @@ class TelegramBotWrapper:
     BTN_LANG_LOAD = 'Language_load'
     BTN_OPTION = "options"
     GET_MESSAGE = "message"
+    MSG_SEND = "send"
+    MSG_SYSTEM = "system"
+    MSG_DEL_LAST = "delete_last_message"
+    MSG_SD_API = "send_to_sd_api"
     GENERATOR_MODE_NEXT = "/send_next_message"
     GENERATOR_MODE_CONTINUE = "/continue_last_message"
     # Supplementary structure
@@ -72,8 +76,8 @@ class TelegramBotWrapper:
     permanent_contex_add = ["+-"]  # Prefix for adding string to context
     # Prefix for sd api generation
     sd_api_prefixes = ["📷", "📸", "📹", "🎥", "📽", ]
-    sd_api_prompt_of = "(Detailed description of appearance, outfit and surroundings of OBJECT:"
-    sd_api_prompt_self = "(Detailed description of appearance, surroundings and what doing right now:"
+    sd_api_prompt_of = "Detailed description of OBJECT:"
+    sd_api_prompt_self = "Detailed description of appearance, surroundings and what doing right now: "
     # Language list
     language_dict = {
         "en": "🇬🇧",
@@ -451,9 +455,10 @@ class TelegramBotWrapper:
 
     # =============================================================================
     # answer generator
-    def generate_answer(self, user_in, chat_id) -> Tuple[str, bool]:
+    def generate_answer(self, user_in, chat_id) -> Tuple[str, str]:
         answer = self.GENERATOR_FAIL
         user = self.users[chat_id]
+        return_msg_action = self.MSG_SEND
 
         try:
             # acquire generator lock if we can
@@ -465,7 +470,8 @@ class TelegramBotWrapper:
                 # If user_in starts with perm_prefix - just replace name2
                 user.name2 = user_in[2:]
                 self.generator_lock.release()
-                return "New name: " + user.name2, True
+                return_msg_action = self.MSG_SYSTEM
+                return "New name: " + user.name2, return_msg_action
             if self.bot_mode in [self.MODE_QUERY]:
                 user.history = []
             if self.bot_mode in [self.MODE_NOTEBOOK]:
@@ -498,6 +504,7 @@ class TelegramBotWrapper:
                     user.user_in.append(user_in)
                     user.history.append("")
                     user.history.append(self.sd_api_prompt_of.replace("OBJECT", user_in[1:].strip()))
+                return_msg_action = self.MSG_SD_API
             elif user_in[0] in self.impersonate_prefixes:
                 # If user_in starts with prefix - impersonate-like (if you try to get "impersonate view")
                 # adding "" line to prevent bug in history sequence, user_in is
@@ -511,7 +518,8 @@ class TelegramBotWrapper:
                 user.user_in.append(user_in)
                 user.history[-1] = user_in[1:]
                 self.generator_lock.release()
-                return user.history[-1], False
+                return_msg_action = self.MSG_DEL_LAST
+                return user.history[-1], return_msg_action
             else:
                 # If not notebook/impersonate/continue mode then ordinary chat preparing
                 # add "name1&2:" to user and bot message (generation from name2
@@ -585,11 +593,13 @@ class TelegramBotWrapper:
                         answer = answer[:-len(end)]
                 user.history[-1] = user.history[-1] + " " + answer
             self.generator_lock.release()
-            return user.history[-1], False
+            return user.history[-1], return_msg_action
         except Exception as exception:
             print("generate_answer", exception)
             # anyway, release generator lock. Then return
             self.generator_lock.release()
+            return_msg_action = self.MSG_SYSTEM
+            return user.history[-1], return_msg_action
 
     def prepare_text(
             self,
@@ -626,7 +636,8 @@ class TelegramBotWrapper:
         chat_id = upd.message.chat.id
         file_list = self.SdApi.txt_to_image(answer)
         answer = answer.replace(self.sd_api_prompt_of.replace("OBJECT", user_text[1:].strip()), "")
-        answer = answer.split("\n")[0]
+        for char in ["[", "]", "{", "}", "(", ")", "*", "\"", "\'"]:
+            answer = answer.replace(char, "")
         if len(file_list) > 0:
             for image_path in file_list:
                 if os.path.exists(image_path):
@@ -731,18 +742,18 @@ class TelegramBotWrapper:
             self.init_check_user(chat_id)
             user = self.users[chat_id]
             # Generate answer and replace "typing" message with it
-            print("user_text", user_text)
             user_text = self.prepare_text(
                 user_text, self.users[chat_id].language, "to_model")
-            print("user_text", user_text)
             answer, system_message = self.generate_answer(
                 user_in=user_text, chat_id=chat_id)
-            if system_message:
+            if system_message == self.MSG_SYSTEM:
                 context.bot.send_message(text=answer, chat_id=chat_id)
-            elif user_text[0] in self.sd_api_prefixes:
+            elif system_message == self.MSG_SD_API:
                 user.truncate_only_history()
                 self.send_sd_image(upd, context, answer, user_text)
             else:
+                if system_message == self.MSG_DEL_LAST:
+                    context.bot.deleteMessage(chat_id=chat_id, message_id=user.msg_id[-1])
                 message = self.send(
                     text=answer, chat_id=chat_id, context=context)
                 # Clear buttons on last message (if they exist in current
