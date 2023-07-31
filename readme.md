@@ -61,11 +61,11 @@ telegram_config.json
             - query - same as notebook, but without history. Each question for bot is like new convrsation withot influence of previous questions
     generator_script=GeneratorLlamaCpp
         name of generator script (generators folder):
-            - GeneratorLlamaCpp - based on llama-cpp-python, recommended
-            - GeneratorLangchainLlamaCpp - based in langchain+llama
-            - GeneratorTransformers - based on transformers, untested
-            - GeneratorTextGenerationWebui - module to integrate in oobabooga/text-generation-webui 
-            - GeneratorTextGenerationWebuiApi - use oobabooga/text-generation-webui API extension
+            - generator_llama_cpp - based on llama-cpp-python, recommended
+            - generator_langchain_llama_cpp - based in langchain+llama
+            - generator_transformers - based on transformers, untested
+            - generator_text_generator_webui - module to integrate in oobabooga/text-generation-webui 
+            - generator_text_generator_webui_api - use oobabooga/text-generation-webui API extension
     model_path=models\llama-13b.ggml.q4_0.bin
         path to model .bin file
 	characters_dir_path=characters
