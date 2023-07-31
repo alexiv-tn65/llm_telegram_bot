@@ -20,5 +20,4 @@ jobs:
         pip install flake8==3.9.0 wemake-python-styleguide==0.15.3 flake8-bandit==2.1.2 bandit==1.7.2
     - name: Analysing the code with flake8
       run: |
-        flake8 generator_llama_cpp.py
-        flake8 generator_text_generator_webui.py
+        flake8 generators\generator_llama_cpp.py
