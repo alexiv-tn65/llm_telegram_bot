@@ -64,7 +64,7 @@ telegram_config.json
             - generator_llama_cpp - based on llama-cpp-python, recommended
             - generator_langchain_llama_cpp - based in langchain+llama
             - generator_transformers - based on transformers, untested
-            - generator_text_generator_webui - module to integrate in oobabooga/text-generation-webui 
+            - generator_text_generator_webui - module to integrate in oobabooga/text-generation-webui (see innightwolfsleep/text-generation-webui-telegram_bot)
             - generator_text_generator_webui_api - use oobabooga/text-generation-webui API extension
     model_path=models\llama-13b.ggml.q4_0.bin
         path to model .bin file
@@ -88,6 +88,12 @@ telegram_config.json
 		users whos id's in admins_file switched to admin mode and can choose settings-for-all (generating settings and model)
 	users_file_path=configs\\telegram_users.txt
 		if just one id in users_file - bot will ignore all users except this id (id's). Even admin will be ignored
+	generator_params_file_path=configs\\telegram_generator_params.json
+	    default text generation params, overwrites by choosen preset 
+	user_rules_file_path=configs\\telegram_user_rules.json
+	    user rules matrix 
+	telegram_sd_config=configs\\telegram_sd_config.json
+	    stable diffusion api config
 	stopping_strings=<END>,<START>,end{code}
 	eos_token=None
 		generating settings
