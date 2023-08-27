@@ -165,7 +165,9 @@ class TelegramBotWrapper:
         self.SdApi = SdApi(self.sd_api_url, self.sd_config_file_path)
         # generator initiate
         print("Telegram bot generator script: ", self.generator_script)
-        generator_script.init(self.generator_script, self.model_path)
+        generator_script.init(self.generator_script, self.model_path,
+                              n_ctx=self.generation_params.get("chat_prompt_size", 1024),
+                              n_gpu_layers=self.generation_params.get("n_gpu_layers", 0))
 
     def load_config_file(self, config_file_path: str):
         if os.path.exists(config_file_path):
