@@ -11,7 +11,7 @@ REQUIREMENTS:
 - llama-cpp-python
 
 HOW TO INSTALL:
-1) clone this repo to "text-generation-webui\extensions"
+1) clone this repo
 ```
 git clone https://github.com/innightwolfsleep/llm_telegram_bot 
 ```
