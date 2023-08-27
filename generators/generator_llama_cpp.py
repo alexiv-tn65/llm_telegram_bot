@@ -12,6 +12,7 @@ class Generator:
         self.n_ctx = n_ctx
         self.seed = seed
         self.n_gpu_layers = n_gpu_layers
+        print(n_gpu_layers)
         self.llm = Llama(model_path=model_path, n_ctx=n_ctx, seed=seed, n_gpu_layers=n_gpu_layers)
 
     def get_answer(self,
