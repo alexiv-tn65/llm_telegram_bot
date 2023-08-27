@@ -13,7 +13,6 @@ REQUIREMENTS:
 HOW TO INSTALL:
 1) clone this repo to "text-generation-webui\extensions"
 ```
-cd text-generation-webui
 git clone https://github.com/innightwolfsleep/llm_telegram_bot 
 ```
 2) install requirements. 
