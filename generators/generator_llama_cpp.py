@@ -5,7 +5,7 @@ import os
 class Generator:
     #  Place where path to LLM file stored
     llm: Llama = None
-    model_change_allowed = False  # if model changing allowed without stopping.
+    model_change_allowed = True  # if model changing allowed without stopping.
     preset_change_allowed = True  # if preset changing allowed.
 
     def __init__(self, model_path: str, n_ctx=4096, seed=0, n_gpu_layers=0):
@@ -46,11 +46,11 @@ class Generator:
 
     def get_model_list(self):
         bins = []
-        for i in os.listdir("../models"):
-            if i.endswith(".bin"):
+        for i in os.listdir("models"):
+            if i.endswith(".bin") or i.endswith(".gguf") :
                 bins.append(i)
         return bins
 
     def load_model(self, model_file: str):
-        with open("models\\" + model_file, "r") as model:
-            self.llm: Llama = Llama(model_path=model.read(), n_ctx=self.n_ctx, seed=self.seed)
+        self.llm = None
+        self.llm = Llama(model_path="models\\" + model_file, n_ctx=self.n_ctx, seed=self.seed, n_gpu_layers=self.n_gpu_layers)
