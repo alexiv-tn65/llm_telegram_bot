@@ -974,6 +974,7 @@ Language: {user.language}"""
             context=context,
             upd=upd,
         )
+        user.history[-1] = answer
         user.save_user_history(chat_id, self.history_dir_path)
 
     def delete_word_button(self, upd: Update, context: CallbackContext):
