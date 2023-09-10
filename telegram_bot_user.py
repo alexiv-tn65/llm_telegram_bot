@@ -22,17 +22,19 @@ class TelegramBotUser:
         "hist_loaded": "_NAME2_ LOADED!\n_GREETING_\n\nLAST MESSAGE:\n_CUSTOM_STRING_",  # load history
     }
 
-    def __init__(self,
-                 char_file="",
-                 name1="You",
-                 name2="Bot",
-                 context="",
-                 example="",
-                 language="en",
-                 silero_speaker="None",
-                 silero_model_id="None",
-                 turn_template="",
-                 greeting="Hello."):
+    def __init__(
+        self,
+        char_file="",
+        name1="You",
+        name2="Bot",
+        context="",
+        example="",
+        language="en",
+        silero_speaker="None",
+        silero_model_id="None",
+        turn_template="",
+        greeting="Hello.",
+    ):
         """Init User class with default attribute
 
         Args:
@@ -50,8 +52,12 @@ class TelegramBotUser:
         self.silero_speaker: str = silero_speaker
         self.silero_model_id: str = silero_model_id
         self.turn_template: str = turn_template
-        self.user_in: list = []  # "user input history": [["Hi!","Who are you?"]], need for regenerate option
-        self.history: list = []  # "history": [["Hi!", "Hi there!","Who are you?", "I am you assistant."]],
+        self.user_in: list = (
+            []
+        )  # "user input history": [["Hi!","Who are you?"]], need for regenerate option
+        self.history: list = (
+            []
+        )  # "history": [["Hi!", "Hi there!","Who are you?", "I am you assistant."]],
         self.msg_id: list = []  # "msg_id": [143, 144, 145, 146],
         self.greeting: str = greeting
 
@@ -78,8 +84,7 @@ class TelegramBotUser:
         return user_in
 
     def reset(self):
-        """Clear bot history and reset to default everything but language, silero and chat_file.
-        """
+        """Clear bot history and reset to default everything but language, silero and chat_file."""
         self.name1 = "You"
         self.name2 = "Bot"
         self.context = ""
@@ -96,21 +101,23 @@ class TelegramBotUser:
         Returns:
             user data as json string
         """
-        return json.dumps({
-            "char_file": self.char_file,
-            "name1": self.name1,
-            "name2": self.name2,
-            "context": self.context,
-            "example": self.example,
-            "language": self.language,
-            "silero_speaker": self.silero_speaker,
-            "silero_model_id": self.silero_model_id,
-            "turn_template": self.turn_template,
-            "user_in": self.user_in,
-            "history": self.history,
-            "msg_id": self.msg_id,
-            "greeting": self.greeting,
-        })
+        return json.dumps(
+            {
+                "char_file": self.char_file,
+                "name1": self.name1,
+                "name2": self.name2,
+                "context": self.context,
+                "example": self.example,
+                "language": self.language,
+                "silero_speaker": self.silero_speaker,
+                "silero_model_id": self.silero_model_id,
+                "turn_template": self.turn_template,
+                "user_in": self.user_in,
+                "history": self.history,
+                "msg_id": self.msg_id,
+                "greeting": self.greeting,
+            }
+        )
 
     def from_json(self, json_data: str):
         """Convert json string data to internal variables of User class
@@ -129,9 +136,15 @@ class TelegramBotUser:
             self.context = data["context"] if "context" in data else ""
             self.example = data["example"] if "example" in data else ""
             self.language = data["language"] if "language" in data else "en"
-            self.silero_speaker = data["silero_speaker"] if "silero_speaker" in data else "None"
-            self.silero_model_id = data["silero_model_id"] if "silero_model_id" in data else "None"
-            self.turn_template = data["turn_template"] if "turn_template" in data else ""
+            self.silero_speaker = (
+                data["silero_speaker"] if "silero_speaker" in data else "None"
+            )
+            self.silero_model_id = (
+                data["silero_model_id"] if "silero_model_id" in data else "None"
+            )
+            self.turn_template = (
+                data["turn_template"] if "turn_template" in data else ""
+            )
             self.user_in = data["user_in"]
             self.history = data["history"]
             self.msg_id = data["msg_id"]
@@ -157,45 +170,47 @@ class TelegramBotUser:
         # Copy default user data. If reading will fail - return default user data
         try:
             # Try to read char file.
-            char_file_path = Path(f'{characters_dir_path}/{char_file}')
-            with open(char_file_path, 'r', encoding='utf-8') as user_file:
+            char_file_path = Path(f"{characters_dir_path}/{char_file}")
+            with open(char_file_path, "r", encoding="utf-8") as user_file:
                 if char_file.split(".")[-1] == "json":
                     data = json.loads(user_file.read())
                 else:
                     data = yaml.safe_load(user_file.read())
             #  load persona and scenario
             self.char_file = char_file
-            if 'user' in data:
-                self.name1 = data['user']
-            if 'bot' in data:
-                self.name2 = data['bot']
-            if 'you_name' in data:
-                self.name1 = data['you_name']
-            if 'char_name' in data:
-                self.name2 = data['char_name']
-            if 'name' in data:
-                self.name2 = data['name']
-            if 'turn_template' in data:
-                self.turn_template = data['turn_template']
-            self.context = ''
-            if 'char_persona' in data:
-                self.context += f"{self.name2}'s Persona: {data['char_persona'].strip()}\n"
-            if 'context' in data:
+            if "user" in data:
+                self.name1 = data["user"]
+            if "bot" in data:
+                self.name2 = data["bot"]
+            if "you_name" in data:
+                self.name1 = data["you_name"]
+            if "char_name" in data:
+                self.name2 = data["char_name"]
+            if "name" in data:
+                self.name2 = data["name"]
+            if "turn_template" in data:
+                self.turn_template = data["turn_template"]
+            self.context = ""
+            if "char_persona" in data:
+                self.context += (
+                    f"{self.name2}'s Persona: {data['char_persona'].strip()}\n"
+                )
+            if "context" in data:
                 self.context += f"{data['context'].strip()}\n"
-            if 'world_scenario' in data:
+            if "world_scenario" in data:
                 self.context += f"Scenario: {data['world_scenario'].strip()}\n"
-            if 'personality' in data:
+            if "personality" in data:
                 self.context += f"Personality: {data['world_scenario'].strip()}\n"
-            if 'description' in data:
+            if "description" in data:
                 self.context += f"Description: {data['world_scenario'].strip()}\n"
             #  add dialogue examples
-            if 'example_dialogue' in data:
+            if "example_dialogue" in data:
                 self.example = f"\n{data['example_dialogue'].strip()}\n"
             #  add char greeting
-            if 'char_greeting' in data:
-                self.greeting = data['char_greeting'].strip()
-            if 'greeting' in data:
-                self.greeting = data['greeting'].strip()
+            if "char_greeting" in data:
+                self.greeting = data["char_greeting"].strip()
+            if "greeting" in data:
+                self.greeting = data["greeting"].strip()
             self.context = self.replace_context_templates(self.context)
             self.greeting = self.replace_context_templates(self.greeting)
             self.example = self.replace_context_templates(self.example)
@@ -208,10 +223,10 @@ class TelegramBotUser:
             return self
 
     def replace_context_templates(self, s: str) -> str:
-        s = s.replace('{{char}}', self.name2)
-        s = s.replace('{{user}}', self.name1)
-        s = s.replace('<BOT>', self.name2)
-        s = s.replace('<USER>', self.name1)
+        s = s.replace("{{char}}", self.name2)
+        s = s.replace("{{user}}", self.name1)
+        s = s.replace("<BOT>", self.name2)
+        s = s.replace("<USER>", self.name1)
         return s
 
     def find_and_load_user_char_history(self, chat_id, history_dir_path: str):
@@ -227,8 +242,12 @@ class TelegramBotUser:
             True user history found and loaded, otherwise False
         """
         chat_id = str(chat_id)
-        user_char_history_path = f'{history_dir_path}/{str(chat_id)}{self.char_file}.json'
-        user_char_history_old_path = f'{history_dir_path}/{str(chat_id)}{self.name2}.json'
+        user_char_history_path = (
+            f"{history_dir_path}/{str(chat_id)}{self.char_file}.json"
+        )
+        user_char_history_old_path = (
+            f"{history_dir_path}/{str(chat_id)}{self.name2}.json"
+        )
         if exists(user_char_history_path):
             return self.load_user_history(user_char_history_path)
         elif exists(user_char_history_old_path):
@@ -246,7 +265,7 @@ class TelegramBotUser:
         """
         try:
             if exists(file_path):
-                with open(file_path, 'r', encoding='utf-8') as user_file:
+                with open(file_path, "r", encoding="utf-8") as user_file:
                     data = user_file.read()
                 self.from_json(data)
                 if self.char_file == "":
@@ -257,7 +276,7 @@ class TelegramBotUser:
             return False
 
     def save_user_history(self, chat_id, history_dir_path="history"):
-        """ Save two history file "user + char + .json" and default user history files and return their path
+        """Save two history file "user + char + .json" and default user history files and return their path
 
         Args:
           chat_id: user chat_id

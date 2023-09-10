@@ -12,22 +12,30 @@ llm = None
 
 # Callbacks support token-wise streaming
 
+
 class Generator:
     model_change_allowed = False  # if model changing allowed without stopping.
     preset_change_allowed = True  # if preset changing allowed.
 
     def __init__(self, model_path, n_ctx=2048, seed=0, n_gpu_layers=0):
         callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])
-        self.llm = LlamaCpp(model_path=model_path, n_ctx=n_ctx, callback_manager=callback_manager, verbose=True)
+        self.llm = LlamaCpp(
+            model_path=model_path,
+            n_ctx=n_ctx,
+            callback_manager=callback_manager,
+            verbose=True,
+        )
 
-    def get_answer(self,
-                   prompt,
-                   generation_params,
-                   eos_token,
-                   stopping_strings,
-                   default_answer,
-                   turn_template='',
-                   **kwargs):
+    def get_answer(
+        self,
+        prompt,
+        generation_params,
+        eos_token,
+        stopping_strings,
+        default_answer,
+        turn_template="",
+        **kwargs
+    ):
         if "max_tokens" in generation_params:
             llm.max_tokens = generation_params["max_tokens"]
         if "temperature" in generation_params:
@@ -36,7 +44,9 @@ class Generator:
             llm.top_p = generation_params["top_p"]
         if "top_k" in generation_params:
             llm.top_k = generation_params["top_k"]
-        prompt_template = PromptTemplate(template="{prompt}", input_variables=["prompt"])
+        prompt_template = PromptTemplate(
+            template="{prompt}", input_variables=["prompt"]
+        )
         llm.stop = stopping_strings
         llm_chain = LLMChain(prompt=prompt_template, llm=self.llm)
         answer = llm_chain.run(prompt)
@@ -47,7 +57,9 @@ class Generator:
         length = len(splitter.split_text(text))
         return length
 
-    def get_model_list(self, ):
+    def get_model_list(
+        self,
+    ):
         bins = []
         for i in os.listdir("models"):
             if i.endswith(".bin"):
