@@ -13,16 +13,20 @@ class Generator:
         self.seed = seed
         self.n_gpu_layers = n_gpu_layers
         print(n_gpu_layers)
-        self.llm = Llama(model_path=model_path, n_ctx=n_ctx, seed=seed, n_gpu_layers=n_gpu_layers)
+        self.llm = Llama(
+            model_path=model_path, n_ctx=n_ctx, seed=seed, n_gpu_layers=n_gpu_layers
+        )
 
-    def get_answer(self,
-                   prompt,
-                   generation_params,
-                   eos_token,
-                   stopping_strings,
-                   default_answer: str,
-                   turn_template='',
-                   **kwargs):
+    def get_answer(
+        self,
+        prompt,
+        generation_params,
+        eos_token,
+        stopping_strings,
+        default_answer: str,
+        turn_template="",
+        **kwargs
+    ):
         # Preparing, add stopping_strings
         answer = default_answer
 
@@ -35,7 +39,8 @@ class Generator:
                 repeat_penalty=generation_params["repetition_penalty"],
                 stop=stopping_strings,
                 max_tokens=generation_params["max_new_tokens"],
-                echo=True)
+                echo=True,
+            )
             answer = answer["choices"][0]["text"].replace(prompt, "")
         except Exception as exception:
             print("generator_wrapper get answer error ", exception)
@@ -53,4 +58,6 @@ class Generator:
 
     def load_model(self, model_file: str):
         with open("models\\" + model_file, "r") as model:
-            self.llm: Llama = Llama(model_path=model.read(), n_ctx=self.n_ctx, seed=self.seed)
+            self.llm: Llama = Llama(
+                model_path=model.read(), n_ctx=self.n_ctx, seed=self.seed
+            )

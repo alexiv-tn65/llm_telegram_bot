@@ -14,14 +14,16 @@ class Generator:
             device_map="auto",
         )
 
-    def get_answer(self,
-            prompt,
-            generation_params,
-            eos_token,
-            stopping_strings,
-            default_answer,
-            turn_template='',
-            **kwargs):
+    def get_answer(
+        self,
+        prompt,
+        generation_params,
+        eos_token,
+        stopping_strings,
+        default_answer,
+        turn_template="",
+        **kwargs,
+    ):
         if "max_tokens" in generation_params:
             max_tokens = generation_params["max_tokens"]
         if "temperature" in generation_params:
@@ -40,18 +42,15 @@ class Generator:
         )
         answer = ""
         for seq in sequences:
-            answer += seq['generated_text']
+            answer += seq["generated_text"]
             print(f"Result: {seq['generated_text']}")
         return answer
-
 
     def tokens_count(self, text: str):
         return 0
 
-
     def get_model_list(self):
         pass
-
 
     def load_model(self, model_file: str):
         pass

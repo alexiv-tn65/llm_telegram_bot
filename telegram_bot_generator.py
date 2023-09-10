@@ -25,22 +25,26 @@ def init(script="GeneratorLlamaCpp", model_path="", n_ctx=4096, n_gpu_layers=0):
     """
     try:
         generator_class = getattr(
-            importlib.import_module("generators." + script), "Generator")
+            importlib.import_module("generators." + script), "Generator"
+        )
     except ImportError:
         generator_class = getattr(
-            importlib.import_module("extensions.telegram_bot.generators." + script), "Generator")
+            importlib.import_module("extensions.telegram_bot.generators." + script),
+            "Generator",
+        )
     global generator
     generator = generator_class(model_path, n_ctx=n_ctx, n_gpu_layers=n_gpu_layers)
 
 
 def get_answer(
-        prompt,
-        generation_params,
-        eos_token,
-        stopping_strings,
-        default_answer: str,
-        turn_template='',
-        **kwargs) -> str:
+    prompt,
+    generation_params,
+    eos_token,
+    stopping_strings,
+    default_answer: str,
+    turn_template="",
+    **kwargs
+) -> str:
     """Generate and return answer string.
 
     Args:
@@ -61,8 +65,14 @@ def get_answer(
         print("stopping_strings =", stopping_strings)
         print(prompt, end="")
     try:
-        answer = generator.get_answer(prompt, generation_params, eos_token, stopping_strings, default_answer,
-                                      turn_template)
+        answer = generator.get_answer(
+            prompt,
+            generation_params,
+            eos_token,
+            stopping_strings,
+            default_answer,
+            turn_template,
+        )
     except Exception as e:
         print("generation error:", e)
     if debug_flag:
