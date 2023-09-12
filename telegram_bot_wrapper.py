@@ -85,7 +85,9 @@ class TelegramBotWrapper:
     replace_prefixes = ["!", "-"]  # Prefix to replace last message
     impersonate_prefixes = ["#", "+"]  # Prefix for "impersonate" message
     # Prefix for persistence "impersonate" message
-    permanent_impersonate_prefixes = ["++"]
+    permanent_change_name1_prefixes = ["--"]
+    permanent_change_name2_prefixes = ["++"]
+    permanent_add_context_prefixes = ["=="]
     # Prefix for replace username "impersonate" message
     permanent_user_prefixes = ["+="]
     permanent_contex_add = ["+-"]  # Prefix for adding string to context
@@ -437,12 +439,24 @@ class TelegramBotWrapper:
             # if generation will fail, return "fail" answer
 
             # Preprocessing: add user_in to history in right order:
-            if user_in[:2] in self.permanent_impersonate_prefixes:
+            if user_in[:2] in self.permanent_change_name2_prefixes:
                 # If user_in starts with perm_prefix - just replace name2
                 user.name2 = user_in[2:]
                 self.generator_lock.release()
                 return_msg_action = self.MSG_SYSTEM
-                return "New name: " + user.name2, return_msg_action
+                return "New bot name: " + user.name2, return_msg_action
+            if user_in[:2] in self.permanent_change_name1_prefixes:
+                # If user_in starts with perm_prefix - just replace name2
+                user.name1 = user_in[2:]
+                self.generator_lock.release()
+                return_msg_action = self.MSG_SYSTEM
+                return "New user name: " + user.name1, return_msg_action
+            if user_in[:2] in self.permanent_add_context_prefixes:
+                # If user_in starts with perm_prefix - just replace name2
+                user.context += "\n" + user_in[2:]
+                self.generator_lock.release()
+                return_msg_action = self.MSG_SYSTEM
+                return "Added to context: " + user_in[2:], return_msg_action
             if self.bot_mode in [self.MODE_QUERY]:
                 user.history = []
             if self.bot_mode in [self.MODE_NOTEBOOK]:
@@ -601,7 +615,9 @@ class TelegramBotWrapper:
                 text = self.html_tag[0] + text + self.html_tag[1]
         return text
 
-    @backoff.on_exception(backoff.expo, urllib3.exceptions.ConnectTimeoutError, max_time=60)
+    @backoff.on_exception(
+        backoff.expo, (urllib3.exceptions.HTTPError, urllib3.exceptions.ConnectTimeoutError), max_time=60
+    )
     def send_sd_image(self, upd: Update, context: CallbackContext, answer, user_text):
         chat_id = upd.message.chat.id
         file_list = self.SdApi.txt_to_image(answer)
@@ -615,7 +631,9 @@ class TelegramBotWrapper:
                         context.bot.send_photo(caption=answer, chat_id=chat_id, photo=image_file)
                     os.remove(image_path)
 
-    @backoff.on_exception(backoff.expo, urllib3.exceptions.ConnectTimeoutError, max_time=60)
+    @backoff.on_exception(
+        backoff.expo, (urllib3.exceptions.HTTPError, urllib3.exceptions.ConnectTimeoutError), max_time=60
+    )
     def clean_last_message_markup(self, context: CallbackContext, chat_id: int):
         if chat_id in self.users and len(self.users[chat_id].msg_id) > 0:
             last_msg = self.users[chat_id].msg_id[-1]
@@ -624,7 +642,9 @@ class TelegramBotWrapper:
             except Exception as exception:
                 logging.error("last_message_markup_clean: " + str(exception))
 
-    @backoff.on_exception(backoff.expo, urllib3.exceptions.ConnectTimeoutError, max_time=60)
+    @backoff.on_exception(
+        backoff.expo, (urllib3.exceptions.HTTPError, urllib3.exceptions.ConnectTimeoutError), max_time=60
+    )
     def send(self, context: CallbackContext, chat_id: int, text: str):
         user = self.users[chat_id]
         text = self.prepare_text(text, self.users[chat_id].language, "to_user")
@@ -662,7 +682,9 @@ class TelegramBotWrapper:
                 return message
             return message
 
-    @backoff.on_exception(backoff.expo, urllib3.exceptions.ConnectTimeoutError, max_time=60)
+    @backoff.on_exception(
+        backoff.expo, (urllib3.exceptions.HTTPError, urllib3.exceptions.ConnectTimeoutError), max_time=60
+    )
     def edit(
         self,
         context: CallbackContext,
