@@ -615,7 +615,9 @@ class TelegramBotWrapper:
                 text = self.html_tag[0] + text + self.html_tag[1]
         return text
 
-    @backoff.on_exception(backoff.expo, urllib3.exceptions.HTTPError, max_time=60)
+    @backoff.on_exception(
+        backoff.expo, (urllib3.exceptions.HTTPError, urllib3.exceptions.ConnectTimeoutError), max_time=60
+    )
     def send_sd_image(self, upd: Update, context: CallbackContext, answer, user_text):
         chat_id = upd.message.chat.id
         file_list = self.SdApi.txt_to_image(answer)
@@ -629,7 +631,9 @@ class TelegramBotWrapper:
                         context.bot.send_photo(caption=answer, chat_id=chat_id, photo=image_file)
                     os.remove(image_path)
 
-    @backoff.on_exception(backoff.expo, urllib3.exceptions.HTTPError, max_time=60)
+    @backoff.on_exception(
+        backoff.expo, (urllib3.exceptions.HTTPError, urllib3.exceptions.ConnectTimeoutError), max_time=60
+    )
     def clean_last_message_markup(self, context: CallbackContext, chat_id: int):
         if chat_id in self.users and len(self.users[chat_id].msg_id) > 0:
             last_msg = self.users[chat_id].msg_id[-1]
@@ -638,7 +642,9 @@ class TelegramBotWrapper:
             except Exception as exception:
                 logging.error("last_message_markup_clean: " + str(exception))
 
-    @backoff.on_exception(backoff.expo, urllib3.exceptions.HTTPError, max_time=60)
+    @backoff.on_exception(
+        backoff.expo, (urllib3.exceptions.HTTPError, urllib3.exceptions.ConnectTimeoutError), max_time=60
+    )
     def send(self, context: CallbackContext, chat_id: int, text: str):
         user = self.users[chat_id]
         text = self.prepare_text(text, self.users[chat_id].language, "to_user")
@@ -676,7 +682,9 @@ class TelegramBotWrapper:
                 return message
             return message
 
-    @backoff.on_exception(backoff.expo, urllib3.exceptions.HTTPError, max_time=60)
+    @backoff.on_exception(
+        backoff.expo, (urllib3.exceptions.HTTPError, urllib3.exceptions.ConnectTimeoutError), max_time=60
+    )
     def edit(
         self,
         context: CallbackContext,
