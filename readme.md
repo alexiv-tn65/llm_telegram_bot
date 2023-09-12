@@ -34,10 +34,12 @@ FEATURES:
 - buttons: continue previous message, regenerate last message, remove last messages from history, reset history button, new char loading menu
 - you can load new characters from text-generation-webui\characters with button
 - you can load new model during conversation with button
-- chatting # prefix for impersonate: "#You" or "#Castle guard" or "#Alice thoughts about me"
-- "!" prefix to replace last bot message
-- "++" prefix permanently replace bot name during chat (switch conversation to another character)
-- "📷" prefix to make photo via SD api. Write like "📷Chiharu Yamada", not single "📷"
+- chatting "+" or "#" prefix for impersonate: "#Hero sister" or "+Castle guard". Or even ask bot generate your own message "+You"
+- "-" or "!" prefix to replace last bot message
+- "++" prefix replace bot name during chat (switch conversation to another character)
+- "--" prefix replace you name during chat
+- "==" prefix to add message to context
+- "📷" prefix to make photo via SD api. Write like "📷Chiharu Yamada", not single "📷". Need to run ([StableDiffusion](https://github.com/AUTOMATIC1111/stable-diffusion-webui)) with --api key first.
 - save/load history in chat by downloading/forwarding to chat .json file
 - integrated auto-translate (you can set model/user language parameter) 
 - voice generating ([silero](https://github.com/snakers4/silero-models)), en and ru variants
