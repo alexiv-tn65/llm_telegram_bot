@@ -1,9 +1,12 @@
 import io
+import logging
 import os.path
 from threading import Thread, Lock, Event
 from pathlib import Path
 import json
 import time
+import backoff
+import urllib3
 from re import split, sub
 from os import listdir
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaAudio
@@ -30,6 +33,12 @@ except ImportError:
     import telegram_bot_generator as generator_script
     from telegram_bot_silero import Silero as Silero
     from telegram_bot_sd_api import SdApi as SdApi
+
+logging.basicConfig(
+    format="%(asctime)s %(levelname)s %(message)s",
+    datefmt="%Y.%m.%d %I:%M:%S %p",
+    level=logging.INFO,
+)
 
 
 class TelegramBotWrapper:
@@ -166,7 +175,7 @@ class TelegramBotWrapper:
             with open(self.generator_params_file_path, "r") as params_file:
                 self.generation_params = json.loads(params_file.read())
         else:
-            print("Cant find generator_params_file")
+            logging.error("Cant find generator_params_file")
             self.generation_params = {}
         # Load preset
         self.load_preset(self.default_preset)
@@ -175,14 +184,16 @@ class TelegramBotWrapper:
             with open(self.user_rules_file_path, "r") as user_rules_file:
                 self.user_rules = json.loads(user_rules_file.read())
         else:
-            print("Cant find user_rules_file_path: " + self.user_rules_file_path)
+            logging.error(
+                "Cant find user_rules_file_path: " + self.user_rules_file_path
+            )
             self.user_rules = {}
         # Silero initiate
         self.silero = Silero()
         # SdApi initiate
         self.SdApi = SdApi(self.sd_api_url, self.sd_config_file_path)
         # generator initiate
-        print("Telegram bot generator script: ", self.generator_script)
+        logging.info("Telegram bot generator script: " + str(self.generator_script))
         generator_script.init(
             self.generator_script,
             self.model_path,
@@ -239,7 +250,7 @@ class TelegramBotWrapper:
                 )
                 self.eos_token = config.get("eos_token", self.eos_token)
         else:
-            print("Cant find config_file " + config_file_path)
+            logging.error("Cant find config_file " + config_file_path)
 
     # =============================================================================
     # Run bot with token! Initiate updater obj!
@@ -270,7 +281,7 @@ class TelegramBotWrapper:
         self.updater.dispatcher.add_handler(CallbackQueryHandler(self.cb_opt_button))
         self.updater.start_polling()
         Thread(target=self.no_sleep_callback).start()
-        print("Telegram bot started!", self.updater)
+        logging.info("Telegram bot started!" + str(self.updater))
 
     def no_sleep_callback(self):
         while True:
@@ -281,7 +292,7 @@ class TelegramBotWrapper:
             except BadRequest:
                 pass
             except Exception as error:
-                print(error)
+                logging.error(error)
             time.sleep(60)
 
     # =============================================================================
@@ -313,16 +324,6 @@ class TelegramBotWrapper:
             parse_mode="HTML",
         )
 
-    def clean_last_message_markup(self, context: CallbackContext, chat_id: int):
-        if chat_id in self.users and len(self.users[chat_id].msg_id) > 0:
-            last_msg = self.users[chat_id].msg_id[-1]
-            try:
-                context.bot.editMessageReplyMarkup(
-                    chat_id=chat_id, message_id=last_msg, reply_markup=None
-                )
-            except Exception as exception:
-                print("last_message_markup_clean", exception)
-
     def make_template_message(
         self, request: str, chat_id: int, custom_string=""
     ) -> str:
@@ -348,10 +349,8 @@ class TelegramBotWrapper:
                 msg = msg.replace("_CLOSE_TAG_", self.html_tag[1])
                 return msg
             else:
-                print(request, custom_string)
                 return self.UNKNOWN_TEMPLATE
         else:
-            print(request, custom_string)
             return self.UNKNOWN_USER
 
     # =============================================================================
@@ -573,7 +572,9 @@ class TelegramBotWrapper:
             available_len -= context_len
             if available_len < 0:
                 available_len = 0
-                print("telegram_bot: ", chat_id, " - CONTEXT IS TOO LONG!!!")
+                logging.info(
+                    "telegram_bot: " + str(chat_id) + " - CONTEXT IS TOO LONG!!!"
+                )
 
             conversation = [example, greeting] + user.history
 
@@ -610,7 +611,7 @@ class TelegramBotWrapper:
             self.generator_lock.release()
             return user.history[-1], return_msg_action
         except Exception as exception:
-            print("generate_answer", exception)
+            logging.error("generate_answer" + str(exception))
             # anyway, release generator lock. Then return
             self.generator_lock.release()
             return_msg_action = self.MSG_SYSTEM
@@ -631,7 +632,7 @@ class TelegramBotWrapper:
                     ).translate(text)
             except Exception as e:
                 text = "can't translate text:" + str(text)
-                print("translator_error", e)
+                logging.error("translator_error" + str(e))
         # Add HTML tags and other...
         if direction not in ["to_model", "no_html"]:
             text = (
@@ -660,6 +661,7 @@ class TelegramBotWrapper:
                 text = self.html_tag[0] + text + self.html_tag[1]
         return text
 
+    @backoff.on_exception(backoff.expo, urllib3.exceptions.ConnectTimeoutError, max_time=60)
     def send_sd_image(self, upd: Update, context: CallbackContext, answer, user_text):
         chat_id = upd.message.chat.id
         file_list = self.SdApi.txt_to_image(answer)
@@ -677,6 +679,19 @@ class TelegramBotWrapper:
                         )
                     os.remove(image_path)
 
+    @backoff.on_exception(backoff.expo, urllib3.exceptions.ConnectTimeoutError, max_time=60)
+    def clean_last_message_markup(self, context: CallbackContext, chat_id: int):
+        if chat_id in self.users and len(self.users[chat_id].msg_id) > 0:
+            last_msg = self.users[chat_id].msg_id[-1]
+            try:
+                context.bot.editMessageReplyMarkup(
+                    chat_id=chat_id, message_id=last_msg, reply_markup=None
+                )
+            except Exception as exception:
+                logging.error("last_message_markup_clean: " + str(exception))
+
+
+    @backoff.on_exception(backoff.expo, urllib3.exceptions.ConnectTimeoutError, max_time=60)
     def send(self, context: CallbackContext, chat_id: int, text: str):
         user = self.users[chat_id]
         text = self.prepare_text(text, self.users[chat_id].language, "to_user")
@@ -716,6 +731,7 @@ class TelegramBotWrapper:
                 return message
             return message
 
+    @backoff.on_exception(backoff.expo, urllib3.exceptions.ConnectTimeoutError, max_time=60)
     def edit(
         self,
         context: CallbackContext,
@@ -813,7 +829,7 @@ class TelegramBotWrapper:
                 # Save user history
                 user.save_user_history(chat_id, self.history_dir_path)
         except Exception as e:
-            print(e)
+            logging.error(str(e))
             raise e
         finally:
             typing.clear()
@@ -852,7 +868,7 @@ class TelegramBotWrapper:
                 self.handle_button_option(option, chat_id, upd, context)
                 self.users[chat_id].save_user_history(chat_id, self.history_dir_path)
         except Exception as e:
-            print(e)
+            logging.error("thread_push_button " + str(e))
         finally:
             typing.clear()
 
@@ -927,7 +943,7 @@ class TelegramBotWrapper:
             context_tokens = generator_script.tokens_count("\n".join(user.context))
             greeting_tokens = generator_script.tokens_count("\n".join(user.greeting))
         except Exception as e:
-            print("options_button tokens_count", e)
+            logging.error("options_button tokens_count" + str(e))
 
         send_text = f"""{user.name2} ({user.char_file}),
 Conversation length: {str(len(user.history))} messages, ({history_tokens} tokens).
@@ -1099,7 +1115,7 @@ Language: {user.language}"""
                     reply_markup=self.get_options_keyboard(chat_id),
                 )
             except Exception as e:
-                print("model button error: ", e)
+                logging.error("model button error: " + str(e))
                 context.bot.editMessageText(
                     chat_id=chat_id,
                     message_id=message_id,

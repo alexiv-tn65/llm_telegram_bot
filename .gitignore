@@ -4,6 +4,7 @@
 models/*
 !models/place_models_here.txt
 characters/*
-!characters/Exy.yaml
+!characters/Example.yaml
+!characters/Coder.json
 history/*
 history/telegram_history_here.txt
