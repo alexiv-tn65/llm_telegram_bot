@@ -1,11 +1,12 @@
 import re
+
 import torch
 from num2words import num2words
 
 try:
-    from extensions.telegram_bot.TelegramBotUser import TelegramBotUser as User
+    from extensions.telegram_bot.src.TelegramBotUser import TelegramBotUser as User
 except ImportError:
-    from tgbot_user import TelegramBotUser as User
+    from src.user import TelegramBotUser as User
 
 
 class Silero:

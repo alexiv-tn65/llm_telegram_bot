@@ -24,10 +24,10 @@ def init(script="GeneratorLlamaCpp", model_path="", n_ctx=4096, n_gpu_layers=0):
       n_gpu_layers: n_gpu_layers for llama
     """
     try:
-        generator_class = getattr(importlib.import_module("generators." + script), "Generator")
+        generator_class = getattr(importlib.import_module("src.generators." + script), "Generator")
     except ImportError:
         generator_class = getattr(
-            importlib.import_module("extensions.telegram_bot.generators." + script),
+            importlib.import_module("extensions.src.telegram_bot.generators." + script),
             "Generator",
         )
     global generator
@@ -72,7 +72,7 @@ def get_answer(
     return answer
 
 
-def tokens_count(text: str):
+def get_tokens_count(text: str):
     """Return string length in tokens
 
     Args:
