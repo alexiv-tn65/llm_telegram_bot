@@ -52,12 +52,8 @@ class TelegramBotUser:
         self.silero_speaker: str = silero_speaker
         self.silero_model_id: str = silero_model_id
         self.turn_template: str = turn_template
-        self.user_in: list = (
-            []
-        )  # "user input history": [["Hi!","Who are you?"]], need for regenerate option
-        self.history: list = (
-            []
-        )  # "history": [["Hi!", "Hi there!","Who are you?", "I am you assistant."]],
+        self.user_in: list = []  # "user input history": [["Hi!","Who are you?"]], need for regenerate option
+        self.history: list = []  # "history": [["Hi!", "Hi there!","Who are you?", "I am you assistant."]],
         self.msg_id: list = []  # "msg_id": [143, 144, 145, 146],
         self.greeting: str = greeting
 
@@ -136,15 +132,9 @@ class TelegramBotUser:
             self.context = data["context"] if "context" in data else ""
             self.example = data["example"] if "example" in data else ""
             self.language = data["language"] if "language" in data else "en"
-            self.silero_speaker = (
-                data["silero_speaker"] if "silero_speaker" in data else "None"
-            )
-            self.silero_model_id = (
-                data["silero_model_id"] if "silero_model_id" in data else "None"
-            )
-            self.turn_template = (
-                data["turn_template"] if "turn_template" in data else ""
-            )
+            self.silero_speaker = data["silero_speaker"] if "silero_speaker" in data else "None"
+            self.silero_model_id = data["silero_model_id"] if "silero_model_id" in data else "None"
+            self.turn_template = data["turn_template"] if "turn_template" in data else ""
             self.user_in = data["user_in"]
             self.history = data["history"]
             self.msg_id = data["msg_id"]
@@ -192,9 +182,7 @@ class TelegramBotUser:
                 self.turn_template = data["turn_template"]
             self.context = ""
             if "char_persona" in data:
-                self.context += (
-                    f"{self.name2}'s Persona: {data['char_persona'].strip()}\n"
-                )
+                self.context += f"{self.name2}'s Persona: {data['char_persona'].strip()}\n"
             if "context" in data:
                 self.context += f"{data['context'].strip()}\n"
             if "world_scenario" in data:
@@ -242,12 +230,8 @@ class TelegramBotUser:
             True user history found and loaded, otherwise False
         """
         chat_id = str(chat_id)
-        user_char_history_path = (
-            f"{history_dir_path}/{str(chat_id)}{self.char_file}.json"
-        )
-        user_char_history_old_path = (
-            f"{history_dir_path}/{str(chat_id)}{self.name2}.json"
-        )
+        user_char_history_path = f"{history_dir_path}/{str(chat_id)}{self.char_file}.json"
+        user_char_history_old_path = f"{history_dir_path}/{str(chat_id)}{self.name2}.json"
         if exists(user_char_history_path):
             return self.load_user_history(user_char_history_path)
         elif exists(user_char_history_old_path):

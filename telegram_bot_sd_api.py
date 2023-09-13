@@ -31,9 +31,7 @@ class SdApi:
             image = Image.open(io.BytesIO(base64.b64decode(i.split(",", 1)[0])))
 
             png_payload = {"image": "data:image/png;base64," + i}
-            response2 = requests.post(
-                url=f"{self.url}/sdapi/v1/png-info", json=png_payload
-            )
+            response2 = requests.post(url=f"{self.url}/sdapi/v1/png-info", json=png_payload)
             output_file = str(random.random()) + ".png"
             png_info = PngImagePlugin.PngInfo()
             png_info.add_text("parameters", response2.json().get("info"))

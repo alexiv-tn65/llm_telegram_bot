@@ -15,52 +15,30 @@ class Generator:
         pass
 
     @staticmethod
-    def get_answer(
-        prompt,
-        generation_params,
-        eos_token,
-        stopping_strings,
-        default_answer,
-        turn_template="",
-        **kwargs
-    ):
+    def get_answer(prompt, generation_params, eos_token, stopping_strings, default_answer, turn_template="", **kwargs):
         generation_params.update({"turn_template": turn_template})
         generation_params.update(
             {
                 "stream": False,
                 "max_new_tokens": int(
-                    generation_params.get(
-                        "max_new_tokens", generation_params.get("max_length", 200)
-                    )
+                    generation_params.get("max_new_tokens", generation_params.get("max_length", 200))
                 ),
                 "do_sample": bool(generation_params.get("do_sample", True)),
                 "temperature": float(generation_params.get("temperature", 0.5)),
                 "top_p": float(generation_params.get("top_p", 1)),
-                "typical_p": float(
-                    generation_params.get(
-                        "typical_p", generation_params.get("typical", 1)
-                    )
-                ),
+                "typical_p": float(generation_params.get("typical_p", generation_params.get("typical", 1))),
                 "epsilon_cutoff": float(generation_params.get("epsilon_cutoff", 0)),
                 "eta_cutoff": float(generation_params.get("eta_cutoff", 0)),
                 "tfs": float(generation_params.get("tfs", 1)),
                 "top_a": float(generation_params.get("top_a", 0)),
                 "repetition_penalty": float(
-                    generation_params.get(
-                        "repetition_penalty", generation_params.get("rep_pen", 1.1)
-                    )
+                    generation_params.get("repetition_penalty", generation_params.get("rep_pen", 1.1))
                 ),
-                "repetition_penalty_range": int(
-                    generation_params.get("repetition_penalty_range", 0)
-                ),
-                "encoder_repetition_penalty": float(
-                    generation_params.get("encoder_repetition_penalty", 1.0)
-                ),
+                "repetition_penalty_range": int(generation_params.get("repetition_penalty_range", 0)),
+                "encoder_repetition_penalty": float(generation_params.get("encoder_repetition_penalty", 1.0)),
                 "top_k": int(generation_params.get("top_k", 0)),
                 "min_length": int(generation_params.get("min_length", 0)),
-                "no_repeat_ngram_size": int(
-                    generation_params.get("no_repeat_ngram_size", 0)
-                ),
+                "no_repeat_ngram_size": int(generation_params.get("no_repeat_ngram_size", 0)),
                 "num_beams": int(generation_params.get("num_beams", 1)),
                 "penalty_alpha": float(generation_params.get("penalty_alpha", 0)),
                 "length_penalty": float(generation_params.get("length_penalty", 1)),
@@ -77,16 +55,12 @@ class Generator:
                     )
                 ),
                 "ban_eos_token": bool(generation_params.get("ban_eos_token", False)),
-                "skip_special_tokens": bool(
-                    generation_params.get("skip_special_tokens", True)
-                ),
+                "skip_special_tokens": bool(generation_params.get("skip_special_tokens", True)),
                 "custom_stopping_strings": "",  # leave this blank
                 "stopping_strings": generation_params.get("stopping_strings", []),
             }
         )
-        generator = generate_reply(
-            question=prompt, state=generation_params, stopping_strings=stopping_strings
-        )
+        generator = generate_reply(question=prompt, state=generation_params, stopping_strings=stopping_strings)
         # This is "bad" implementation of getting answer, should be reworked
         answer = default_answer
         for a in generator:

@@ -8,3 +8,4 @@ characters/*
 !characters/Coder.json
 history/*
 history/telegram_history_here.txt
+.env

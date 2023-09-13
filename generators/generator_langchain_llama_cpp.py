@@ -27,14 +27,7 @@ class Generator:
         )
 
     def get_answer(
-        self,
-        prompt,
-        generation_params,
-        eos_token,
-        stopping_strings,
-        default_answer,
-        turn_template="",
-        **kwargs
+        self, prompt, generation_params, eos_token, stopping_strings, default_answer, turn_template="", **kwargs
     ):
         if "max_tokens" in generation_params:
             llm.max_tokens = generation_params["max_tokens"]
@@ -44,9 +37,7 @@ class Generator:
             llm.top_p = generation_params["top_p"]
         if "top_k" in generation_params:
             llm.top_k = generation_params["top_k"]
-        prompt_template = PromptTemplate(
-            template="{prompt}", input_variables=["prompt"]
-        )
+        prompt_template = PromptTemplate(template="{prompt}", input_variables=["prompt"])
         llm.stop = stopping_strings
         llm_chain = LLMChain(prompt=prompt_template, llm=self.llm)
         answer = llm_chain.run(prompt)
