@@ -1,7 +1,7 @@
 import sys
 import os
 from threading import Thread
-from telegram_bot_wrapper import TelegramBotWrapper
+from tgbot import TelegramBotWrapper
 from dotenv import load_dotenv
 
 config_file_path = "configs/telegram_config.json"
