@@ -42,7 +42,7 @@ class Generator:
 
     def get_model_list(self):
         bins = []
-        for i in os.listdir("../models"):
+        for i in os.listdir("../../models"):
             if i.endswith(".bin"):
                 bins.append(i)
         return bins
