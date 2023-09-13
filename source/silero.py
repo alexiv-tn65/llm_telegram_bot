@@ -6,7 +6,7 @@ from num2words import num2words
 try:
     from extensions.telegram_bot.src.TelegramBotUser import TelegramBotUser as User
 except ImportError:
-    from src.user import TelegramBotUser as User
+    from source.user import TelegramBotUser as User
 
 
 class Silero:

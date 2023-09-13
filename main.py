@@ -25,15 +25,15 @@ from telegram.ext import (
 from telegram.ext import Updater
 
 try:
-    from extensions.telegram_bot.telegram_bot_user import TelegramBotUser as User
-    import extensions.telegram_bot.telegram_bot_generator as generator_script
-    from extensions.telegram_bot.telegram_bot_silero import Silero as Silero
-    from extensions.telegram_bot.telegram_bot_sd_api import SdApi as SdApi
+    from extensions.telegram_bot.source.telegram_bot_user import TelegramBotUser as User
+    import extensions.telegram_bot.source.telegram_bot_generator as generator_script
+    from extensions.telegram_bot.source.telegram_bot_silero import Silero as Silero
+    from extensions.telegram_bot.source.telegram_bot_sd_api import SdApi as SdApi
 except ImportError:
-    from src.user import TelegramBotUser as User
-    from src import generator as generator_script
-    from src.silero import Silero as Silero
-    from src.sd_api import SdApi as SdApi
+    from source.user import TelegramBotUser as User
+    from source import generator as generator_script
+    from source.silero import Silero as Silero
+    from source.sd_api import SdApi as SdApi
 
 logging.basicConfig(
     format="%(asctime)s %(levelname)s %(message)s",
