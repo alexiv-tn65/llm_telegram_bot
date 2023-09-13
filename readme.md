@@ -21,16 +21,17 @@ pip install -r llm_telegram_bot\requirements.txt
 ```
 
 HOW TO USE:
-1) add your bot token to configs/telegram_token.txt (ask https://t.me/BotFather how to get token)
-2) add your model bin file to models/
-3) write path to your bin model file in configs/telegram_config.json - model_path
-2) run "python llm_telegram_bot/main.py"
+1) get bot token from https://t.me/BotFather 
+2) add bot token to environment (look `.env.example`) OR file `configs/telegram_token.txt`
+3) move your model file to `models/`
+4) set **model_path** to your model in `configs/telegram_config.json` 
+5) start `run.cmd` or `run.sh` or `python3 run.py`
 
 FEATURES:
 - chat and notebook modes
 - session for all users are separative (by chat_id)
 - local session history - conversation won't be lost if server restarts. Separated history between users and chars.
-- nice "X typing" during generating (users will not think that bot stucking)
+- nice "X typing" during generating (users will not think that bot stuck)
 - buttons: continue previous message, regenerate last message, remove last messages from history, reset history button, new char loading menu
 - you can load new characters from text-generation-webui\characters with button
 - you can load new model during conversation with button
