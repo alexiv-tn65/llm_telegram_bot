@@ -24,9 +24,7 @@ def init(script="GeneratorLlamaCpp", model_path="", n_ctx=4096, n_gpu_layers=0):
       n_gpu_layers: n_gpu_layers for llama
     """
     try:
-        generator_class = getattr(
-            importlib.import_module("generators." + script), "Generator"
-        )
+        generator_class = getattr(importlib.import_module("generators." + script), "Generator")
     except ImportError:
         generator_class = getattr(
             importlib.import_module("extensions.telegram_bot.generators." + script),
@@ -37,13 +35,7 @@ def init(script="GeneratorLlamaCpp", model_path="", n_ctx=4096, n_gpu_layers=0):
 
 
 def get_answer(
-    prompt,
-    generation_params,
-    eos_token,
-    stopping_strings,
-    default_answer: str,
-    turn_template="",
-    **kwargs
+    prompt, generation_params, eos_token, stopping_strings, default_answer: str, turn_template="", **kwargs
 ) -> str:
     """Generate and return answer string.
 

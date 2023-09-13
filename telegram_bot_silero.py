@@ -92,21 +92,11 @@ class Silero:
         if user.silero_speaker == "None" or user.silero_model_id == "None":
             return None
         if user.silero_speaker == "None" or user.silero_model_id == "None":
-            user.silero_model_id, user.silero_speaker = self.get_default_audio_settings(
-                user.language
-            )
-        if (
-            user.silero_speaker
-            not in self.voices[user.language]["male"]
-            + self.voices[user.language]["female"]
-        ):
-            user.silero_model_id, user.silero_speaker = self.get_default_audio_settings(
-                user.language
-            )
+            user.silero_model_id, user.silero_speaker = self.get_default_audio_settings(user.language)
+        if user.silero_speaker not in self.voices[user.language]["male"] + self.voices[user.language]["female"]:
+            user.silero_model_id, user.silero_speaker = self.get_default_audio_settings(user.language)
         if user.silero_model_id not in self.voices[user.language]["model"]:
-            user.silero_model_id, user.silero_speaker = self.get_default_audio_settings(
-                user.language
-            )
+            user.silero_model_id, user.silero_speaker = self.get_default_audio_settings(user.language)
 
         try:
             model, _ = torch.hub.load(
@@ -142,9 +132,7 @@ class Silero:
         # For example, you need to remove the commas in numbers before expanding them
         string = self.remove_surrounded_chars(string)
         string = string.replace('"', "")
-        string = string.replace("\u201D", "").replace(
-            "\u201C", ""
-        )  # right and left quote
+        string = string.replace("\u201D", "").replace("\u201C", "")  # right and left quote
         string = string.replace("\u201F", "")  # italic looking quote
         string = string.replace("\n", " ")
         string = string.replace("*", " ! ")
@@ -192,11 +180,7 @@ class Silero:
 
             start = match.start()
             end = match.end()
-            result = (
-                result[0:start]
-                + result[start:end].replace(".", "").replace(",", ".")
-                + result[end : len(result)]
-            )
+            result = result[0:start] + result[start:end].replace(".", "").replace(",", ".") + result[end : len(result)]
 
         # removes comma separators from existing American numbers
         pattern = re.compile(r"(\d),(\d)")
@@ -262,19 +246,13 @@ class Silero:
 
             start = match.start()
             end = match.end()
-            result = (
-                result[0:start]
-                + self.replace_abbreviation(result[start:end])
-                + result[end : len(result)]
-            )
+            result = result[0:start] + self.replace_abbreviation(result[start:end]) + result[end : len(result)]
 
         return result
 
     def replace_lowercase_abbreviations(self, string):
         # abbreviations 1 to 4 characters long, separated by dots i.e. e.g.
-        pattern = re.compile(
-            rf"(^|[\s(.\'\[<])(([a-z]\.){{1,4}})({self.punctuation}|$)"
-        )
+        pattern = re.compile(rf"(^|[\s(.\'\[<])(([a-z]\.){{1,4}})({self.punctuation}|$)")
         result = string
         while True:
             match = pattern.search(result)
@@ -283,11 +261,7 @@ class Silero:
 
             start = match.start()
             end = match.end()
-            result = (
-                result[0:start]
-                + self.replace_abbreviation(result[start:end].upper())
-                + result[end : len(result)]
-            )
+            result = result[0:start] + self.replace_abbreviation(result[start:end].upper()) + result[end : len(result)]
 
         return result
 

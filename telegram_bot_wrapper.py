@@ -100,9 +100,7 @@ class TelegramBotWrapper:
         "📽",
     ]
     sd_api_prompt_of = "Detailed description of OBJECT:"
-    sd_api_prompt_self = (
-        "Detailed description of appearance, surroundings and what doing right now: "
-    )
+    sd_api_prompt_self = "Detailed description of appearance, surroundings and what doing right now: "
     # Language list
     language_dict = {
         "en": "🇬🇧",
@@ -186,9 +184,7 @@ class TelegramBotWrapper:
             with open(self.user_rules_file_path, "r") as user_rules_file:
                 self.user_rules = json.loads(user_rules_file.read())
         else:
-            logging.error(
-                "Cant find user_rules_file_path: " + self.user_rules_file_path
-            )
+            logging.error("Cant find user_rules_file_path: " + self.user_rules_file_path)
             self.user_rules = {}
         # Silero initiate
         self.silero = Silero()
@@ -208,48 +204,28 @@ class TelegramBotWrapper:
             with open(config_file_path, "r") as config_file_path:
                 config = json.loads(config_file_path.read())
                 self.bot_mode = config.get("bot_mode", self.bot_mode)
-                self.generator_script = config.get(
-                    "generator_script", self.generator_script
-                )
+                self.generator_script = config.get("generator_script", self.generator_script)
                 self.model_path = config.get("model_path", self.model_path)
                 self.default_preset = config.get("default_preset", self.default_preset)
                 self.default_char = config.get("default_char", self.default_char)
                 self.model_lang = config.get("model_lang", self.model_lang)
                 self.user_lang = config.get("user_lang", self.user_lang)
-                self.characters_dir_path = config.get(
-                    "characters_dir_path", self.characters_dir_path
-                )
-                self.presets_dir_path = config.get(
-                    "presets_dir_path", self.presets_dir_path
-                )
-                self.history_dir_path = config.get(
-                    "history_dir_path", self.history_dir_path
-                )
-                self.token_file_path = config.get(
-                    "token_file_path", self.token_file_path
-                )
-                self.admins_file_path = config.get(
-                    "admins_file_path", self.admins_file_path
-                )
-                self.users_file_path = config.get(
-                    "users_file_path", self.users_file_path
-                )
+                self.characters_dir_path = config.get("characters_dir_path", self.characters_dir_path)
+                self.presets_dir_path = config.get("presets_dir_path", self.presets_dir_path)
+                self.history_dir_path = config.get("history_dir_path", self.history_dir_path)
+                self.token_file_path = config.get("token_file_path", self.token_file_path)
+                self.admins_file_path = config.get("admins_file_path", self.admins_file_path)
+                self.users_file_path = config.get("users_file_path", self.users_file_path)
                 self.generator_params_file_path = config.get(
                     "generator_params_file_path", self.generator_params_file_path
                 )
-                self.user_rules_file_path = config.get(
-                    "user_rules_file_path", self.user_rules_file_path
-                )
+                self.user_rules_file_path = config.get("user_rules_file_path", self.user_rules_file_path)
                 self.sd_api_url = config.get("sd_api_url", self.sd_api_url)
-                self.sd_config_file_path = config.get(
-                    "sd_config_file_path", self.sd_config_file_path
-                )
+                self.sd_config_file_path = config.get("sd_config_file_path", self.sd_config_file_path)
                 self.translation_as_hidden_text = config.get(
                     "translation_as_hidden_text", self.translation_as_hidden_text
                 )
-                self.stopping_strings = config.get(
-                    "stopping_strings", self.stopping_strings
-                )
+                self.stopping_strings = config.get("stopping_strings", self.stopping_strings)
                 self.eos_token = config.get("eos_token", self.eos_token)
         else:
             logging.error("Cant find config_file " + config_file_path)
@@ -268,12 +244,8 @@ class TelegramBotWrapper:
             with open(token_file_name, "r", encoding="utf-8") as f:
                 bot_token = f.read().strip()
         self.updater = Updater(token=bot_token, use_context=True)
-        self.updater.dispatcher.add_handler(
-            CommandHandler("start", self.cb_start_command)
-        ),
-        self.updater.dispatcher.add_handler(
-            MessageHandler(Filters.text, self.cb_get_message)
-        )
+        self.updater.dispatcher.add_handler(CommandHandler("start", self.cb_start_command)),
+        self.updater.dispatcher.add_handler(MessageHandler(Filters.text, self.cb_get_message))
         self.updater.dispatcher.add_handler(
             MessageHandler(
                 Filters.document.mime_type("application/json"),
@@ -288,9 +260,7 @@ class TelegramBotWrapper:
     def no_sleep_callback(self):
         while True:
             try:
-                self.updater.bot.send_message(
-                    chat_id=99999999999, text="One message every minute"
-                )
+                self.updater.bot.send_message(chat_id=99999999999, text="One message every minute")
             except BadRequest:
                 pass
             except Exception as error:
@@ -326,9 +296,7 @@ class TelegramBotWrapper:
             parse_mode="HTML",
         )
 
-    def make_template_message(
-        self, request: str, chat_id: int, custom_string=""
-    ) -> str:
+    def make_template_message(self, request: str, chat_id: int, custom_string="") -> str:
         # create a message using default_messages_template or return
         # UNKNOWN_TEMPLATE
         if chat_id in self.users:
@@ -379,21 +347,15 @@ class TelegramBotWrapper:
                 characters_dir_path=self.characters_dir_path,
                 char_file=self.default_char,
             )
-            self.users[chat_id].load_user_history(
-                f"{self.history_dir_path}/{str(chat_id)}.json"
-            )
-            self.users[chat_id].find_and_load_user_char_history(
-                chat_id, self.history_dir_path
-            )
+            self.users[chat_id].load_user_history(f"{self.history_dir_path}/{str(chat_id)}.json")
+            self.users[chat_id].find_and_load_user_char_history(chat_id, self.history_dir_path)
 
     def thread_get_json_document(self, upd: Update, context: CallbackContext):
         chat_id = upd.message.chat.id
         if not self.check_user_permission(chat_id):
             return False
         self.init_check_user(chat_id)
-        default_user_file_path = str(
-            Path(f"{self.history_dir_path}/{str(chat_id)}.json")
-        )
+        default_user_file_path = str(Path(f"{self.history_dir_path}/{str(chat_id)}.json"))
         with open(default_user_file_path, "wb") as f:
             context.bot.get_file(upd.message.document.file_id).download(out=f)
         self.users[chat_id].load_user_history(default_user_file_path)
@@ -412,14 +374,10 @@ class TelegramBotWrapper:
     def typing_status_start(self, context: CallbackContext, chat_id: int) -> Event:
         typing_active = Event()
         typing_active.set()
-        Thread(
-            target=self.thread_typing_status, args=(context, chat_id, typing_active)
-        ).start()
+        Thread(target=self.thread_typing_status, args=(context, chat_id, typing_active)).start()
         return typing_active
 
-    def thread_typing_status(
-        self, context: CallbackContext, chat_id: int, typing_active: Event
-    ):
+    def thread_typing_status(self, context: CallbackContext, chat_id: int, typing_active: Event):
         limit_counter = int(self.generation_timeout / 6)
         while typing_active.is_set() and limit_counter > 0:
             context.bot.send_chat_action(chat_id=chat_id, action=CHATACTION_TYPING)
@@ -530,9 +488,7 @@ class TelegramBotWrapper:
                 else:
                     user.user_in.append(user_in)
                     user.history.append("")
-                    user.history.append(
-                        self.sd_api_prompt_of.replace("OBJECT", user_in[1:].strip())
-                    )
+                    user.history.append(self.sd_api_prompt_of.replace("OBJECT", user_in[1:].strip()))
                 return_msg_action = self.MSG_SD_API
             elif user_in[0] in self.impersonate_prefixes:
                 # If user_in starts with prefix - impersonate-like (if you try to get "impersonate view")
@@ -586,9 +542,7 @@ class TelegramBotWrapper:
             available_len -= context_len
             if available_len < 0:
                 available_len = 0
-                logging.info(
-                    "telegram_bot: " + str(chat_id) + " - CONTEXT IS TOO LONG!!!"
-                )
+                logging.info("telegram_bot: " + str(chat_id) + " - CONTEXT IS TOO LONG!!!")
 
             conversation = [example, greeting] + user.history
 
@@ -637,31 +591,17 @@ class TelegramBotWrapper:
         if self.model_lang != user_language:
             try:
                 if direction == "to_model":
-                    text = Translator(
-                        source=user_language, target=self.model_lang
-                    ).translate(text)
+                    text = Translator(source=user_language, target=self.model_lang).translate(text)
                 elif direction == "to_user":
-                    text = Translator(
-                        source=self.model_lang, target=user_language
-                    ).translate(text)
+                    text = Translator(source=self.model_lang, target=user_language).translate(text)
             except Exception as e:
                 text = "can't translate text:" + str(text)
                 logging.error("translator_error" + str(e))
         # Add HTML tags and other...
         if direction not in ["to_model", "no_html"]:
-            text = (
-                text.replace("#", "&#35;").replace("<", "&#60;").replace(">", "&#62;")
-            )
-            original_text = (
-                original_text.replace("#", "&#35;")
-                .replace("<", "&#60;")
-                .replace(">", "&#62;")
-            )
-            if (
-                self.model_lang != user_language
-                and direction == "to_user"
-                and self.translation_as_hidden_text == "on"
-            ):
+            text = text.replace("#", "&#35;").replace("<", "&#60;").replace(">", "&#62;")
+            original_text = original_text.replace("#", "&#35;").replace("<", "&#60;").replace(">", "&#62;")
+            if self.model_lang != user_language and direction == "to_user" and self.translation_as_hidden_text == "on":
                 text = (
                     self.html_tag[0]
                     + original_text
@@ -683,18 +623,14 @@ class TelegramBotWrapper:
     def send_sd_image(self, upd: Update, context: CallbackContext, answer, user_text):
         chat_id = upd.message.chat.id
         file_list = self.SdApi.txt_to_image(answer)
-        answer = answer.replace(
-            self.sd_api_prompt_of.replace("OBJECT", user_text[1:].strip()), ""
-        )
+        answer = answer.replace(self.sd_api_prompt_of.replace("OBJECT", user_text[1:].strip()), "")
         for char in ["[", "]", "{", "}", "(", ")", "*", '"', "'"]:
             answer = answer.replace(char, "")
         if len(file_list) > 0:
             for image_path in file_list:
                 if os.path.exists(image_path):
                     with open(image_path, "rb") as image_file:
-                        context.bot.send_photo(
-                            caption=answer, chat_id=chat_id, photo=image_file
-                        )
+                        context.bot.send_photo(caption=answer, chat_id=chat_id, photo=image_file)
                     os.remove(image_path)
 
     @backoff.on_exception(
@@ -706,9 +642,7 @@ class TelegramBotWrapper:
         if chat_id in self.users and len(self.users[chat_id].msg_id) > 0:
             last_msg = self.users[chat_id].msg_id[-1]
             try:
-                context.bot.editMessageReplyMarkup(
-                    chat_id=chat_id, message_id=last_msg, reply_markup=None
-                )
+                context.bot.editMessageReplyMarkup(chat_id=chat_id, message_id=last_msg, reply_markup=None)
             except Exception as exception:
                 logging.error("last_message_markup_clean: " + str(exception))
 
@@ -733,9 +667,7 @@ class TelegramBotWrapper:
                 audio_text = ":".join(text.split(":")[1:])
             else:
                 audio_text = text
-            audio_path = self.silero.get_audio(
-                text=audio_text, user_id=chat_id, user=user
-            )
+            audio_path = self.silero.get_audio(text=audio_text, user_id=chat_id, user=user)
             if audio_path is not None:
                 with open(audio_path, "rb") as audio:
                     message = context.bot.send_audio(
@@ -788,14 +720,10 @@ class TelegramBotWrapper:
                 audio_text = ":".join(text.split(":")[1:])
             else:
                 audio_text = text
-            audio_path = self.silero.get_audio(
-                text=audio_text, user_id=chat_id, user=user
-            )
+            audio_path = self.silero.get_audio(text=audio_text, user_id=chat_id, user=user)
             if audio_path is not None:
                 with open(audio_path, "rb") as audio:
-                    media = InputMediaAudio(
-                        media=audio, filename=f"{user.name2}_to_{user.name1}.wav"
-                    )
+                    media = InputMediaAudio(media=audio, filename=f"{user.name2}_to_{user.name1}.wav")
                     context.bot.edit_message_media(
                         chat_id=chat_id,
                         media=media,
@@ -824,21 +752,14 @@ class TelegramBotWrapper:
         # Send "typing" message
         typing = self.typing_status_start(context, chat_id)
         try:
-            if (
-                self.check_user_rule(chat_id=chat_id, option=self.GET_MESSAGE)
-                is not True
-            ):
+            if self.check_user_rule(chat_id=chat_id, option=self.GET_MESSAGE) is not True:
                 return False
             self.init_check_user(chat_id)
             user = self.users[chat_id]
             # Generate answer and replace "typing" message with it
             if user_text not in self.sd_api_prefixes:
-                user_text = self.prepare_text(
-                    user_text, self.users[chat_id].language, "to_model"
-                )
-            answer, system_message = self.generate_answer(
-                user_in=user_text, chat_id=chat_id
-            )
+                user_text = self.prepare_text(user_text, self.users[chat_id].language, "to_model")
+            answer, system_message = self.generate_answer(user_in=user_text, chat_id=chat_id)
             if system_message == self.MSG_SYSTEM:
                 context.bot.send_message(text=answer, chat_id=chat_id)
             elif system_message == self.MSG_SD_API:
@@ -846,9 +767,7 @@ class TelegramBotWrapper:
                 self.send_sd_image(upd, context, answer, user_text)
             else:
                 if system_message == self.MSG_DEL_LAST:
-                    context.bot.deleteMessage(
-                        chat_id=chat_id, message_id=user.msg_id[-1]
-                    )
+                    context.bot.deleteMessage(chat_id=chat_id, message_id=user.msg_id[-1])
                 message = self.send(text=answer, chat_id=chat_id, context=context)
                 # Clear buttons on last message (if they exist in current
                 # thread)
@@ -920,45 +839,25 @@ class TelegramBotWrapper:
             self.show_options_button(upd=upd, context=context)
         elif option == self.BTN_DELETE and self.check_user_rule(chat_id, option):
             self.delete_pressed_button(upd=upd, context=context)
-        elif option.startswith(self.BTN_CHAR_LIST) and self.check_user_rule(
-            chat_id, option
-        ):
+        elif option.startswith(self.BTN_CHAR_LIST) and self.check_user_rule(chat_id, option):
             self.keyboard_characters_button(upd=upd, context=context, option=option)
-        elif option.startswith(self.BTN_CHAR_LOAD) and self.check_user_rule(
-            chat_id, option
-        ):
+        elif option.startswith(self.BTN_CHAR_LOAD) and self.check_user_rule(chat_id, option):
             self.load_character_button(upd=upd, context=context, option=option)
-        elif option.startswith(self.BTN_PRESET_LIST) and self.check_user_rule(
-            chat_id, option
-        ):
+        elif option.startswith(self.BTN_PRESET_LIST) and self.check_user_rule(chat_id, option):
             self.keyboard_presets_button(upd=upd, context=context, option=option)
-        elif option.startswith(self.BTN_PRESET_LOAD) and self.check_user_rule(
-            chat_id, option
-        ):
+        elif option.startswith(self.BTN_PRESET_LOAD) and self.check_user_rule(chat_id, option):
             self.load_presets_button(upd=upd, context=context, option=option)
-        elif option.startswith(self.BTN_MODEL_LIST) and self.check_user_rule(
-            chat_id, option
-        ):
+        elif option.startswith(self.BTN_MODEL_LIST) and self.check_user_rule(chat_id, option):
             self.keyboard_models_button(upd=upd, context=context, option=option)
-        elif option.startswith(self.BTN_MODEL_LOAD) and self.check_user_rule(
-            chat_id, option
-        ):
+        elif option.startswith(self.BTN_MODEL_LOAD) and self.check_user_rule(chat_id, option):
             self.load_model_button(upd=upd, context=context, option=option)
-        elif option.startswith(self.BTN_LANG_LIST) and self.check_user_rule(
-            chat_id, option
-        ):
+        elif option.startswith(self.BTN_LANG_LIST) and self.check_user_rule(chat_id, option):
             self.keyboard_language_button(upd=upd, context=context, option=option)
-        elif option.startswith(self.BTN_LANG_LOAD) and self.check_user_rule(
-            chat_id, option
-        ):
+        elif option.startswith(self.BTN_LANG_LOAD) and self.check_user_rule(chat_id, option):
             self.load_language_button(upd=upd, context=context, option=option)
-        elif option.startswith(self.BTN_VOICE_LIST) and self.check_user_rule(
-            chat_id, option
-        ):
+        elif option.startswith(self.BTN_VOICE_LIST) and self.check_user_rule(chat_id, option):
             self.keyboard_voice_button(upd=upd, context=context, option=option)
-        elif option.startswith(self.BTN_VOICE_LOAD) and self.check_user_rule(
-            chat_id, option
-        ):
+        elif option.startswith(self.BTN_VOICE_LOAD) and self.check_user_rule(chat_id, option):
             self.load_voice_button(upd=upd, context=context, option=option)
 
     def show_options_button(self, upd: Update, context: CallbackContext):
@@ -997,9 +896,7 @@ Language: {user.language}"""
         user = self.users[chat_id]
         # send "typing"
         self.clean_last_message_markup(context, chat_id)
-        answer, _ = self.generate_answer(
-            user_in=self.GENERATOR_MODE_NEXT, chat_id=chat_id
-        )
+        answer, _ = self.generate_answer(user_in=self.GENERATOR_MODE_NEXT, chat_id=chat_id)
         message = self.send(text=answer, chat_id=chat_id, context=context)
         self.users[chat_id].msg_id.append(message.message_id)
         user.save_user_history(chat_id, self.history_dir_path)
@@ -1009,9 +906,7 @@ Language: {user.language}"""
         message = upd.callback_query.message
         user = self.users[chat_id]
         # get answer and replace message text!
-        answer, _ = self.generate_answer(
-            user_in=self.GENERATOR_MODE_CONTINUE, chat_id=chat_id
-        )
+        answer, _ = self.generate_answer(user_in=self.GENERATOR_MODE_CONTINUE, chat_id=chat_id)
         self.edit(
             text=answer,
             chat_id=chat_id,
@@ -1154,9 +1049,7 @@ Language: {user.language}"""
                 )
                 raise e
 
-    def keyboard_models_button(
-        self, upd: Update, context: CallbackContext, option: str
-    ):
+    def keyboard_models_button(self, upd: Update, context: CallbackContext, option: str):
         if generator_script.get_model_list() is not None:
             chat_id = upd.callback_query.message.chat.id
             msg = upd.callback_query.message
@@ -1206,12 +1099,7 @@ Language: {user.language}"""
         if os.path.exists(preset_path):
             with open(preset_path, "r") as preset_file:
                 for line in preset_file.readlines():
-                    name, value = (
-                        line.replace("\n", "")
-                        .replace("\r", "")
-                        .replace(": ", "=")
-                        .split("=")
-                    )
+                    name, value = line.replace("\n", "").replace("\r", "").replace(": ", "=").split("=")
                     if name in self.generation_params:
                         if type(self.generation_params[name]) == int:
                             self.generation_params[name] = int(float(value))
@@ -1224,9 +1112,7 @@ Language: {user.language}"""
                         elif type(self.generation_params[name]) == list:
                             self.generation_params[name] = list(value.split(","))
 
-    def keyboard_presets_button(
-        self, upd: Update, context: CallbackContext, option: str
-    ):
+    def keyboard_presets_button(self, upd: Update, context: CallbackContext, option: str):
         chat_id = upd.callback_query.message.chat.id
         msg = upd.callback_query.message
         #  if "return char markup" button - clear markup
@@ -1247,9 +1133,7 @@ Language: {user.language}"""
             data_load=self.BTN_PRESET_LOAD,
             keyboard_colum=3,
         )
-        context.bot.editMessageReplyMarkup(
-            chat_id=chat_id, message_id=msg.message_id, reply_markup=characters_buttons
-        )
+        context.bot.editMessageReplyMarkup(chat_id=chat_id, message_id=msg.message_id, reply_markup=characters_buttons)
 
     def load_character_button(self, upd: Update, context: CallbackContext, option: str):
         chat_id = upd.callback_query.message.chat.id
@@ -1258,17 +1142,11 @@ Language: {user.language}"""
         self.clean_last_message_markup(context, chat_id)
         self.init_check_user(chat_id)
         char_file = char_list[char_num]
-        self.users[chat_id].load_character_file(
-            characters_dir_path=self.characters_dir_path, char_file=char_file
-        )
+        self.users[chat_id].load_character_file(characters_dir_path=self.characters_dir_path, char_file=char_file)
         #  If there was conversation with this char - load history
-        self.users[chat_id].find_and_load_user_char_history(
-            chat_id, self.history_dir_path
-        )
+        self.users[chat_id].find_and_load_user_char_history(chat_id, self.history_dir_path)
         if len(self.users[chat_id].history) > 0:
-            send_text = self.make_template_message(
-                "hist_loaded", chat_id, self.users[chat_id].history[-1]
-            )
+            send_text = self.make_template_message("hist_loaded", chat_id, self.users[chat_id].history[-1])
         else:
             send_text = self.make_template_message("char_loaded", chat_id)
         context.bot.send_message(
@@ -1278,9 +1156,7 @@ Language: {user.language}"""
             reply_markup=self.get_options_keyboard(chat_id),
         )
 
-    def keyboard_characters_button(
-        self, upd: Update, context: CallbackContext, option: str
-    ):
+    def keyboard_characters_button(self, upd: Update, context: CallbackContext, option: str):
         chat_id = upd.callback_query.message.chat.id
         msg = upd.callback_query.message
         #  if "return char markup" button - clear markup
@@ -1303,9 +1179,7 @@ Language: {user.language}"""
             data_list=self.BTN_CHAR_LIST,
             data_load=self.BTN_CHAR_LOAD,
         )
-        context.bot.editMessageReplyMarkup(
-            chat_id=chat_id, message_id=msg.message_id, reply_markup=characters_buttons
-        )
+        context.bot.editMessageReplyMarkup(chat_id=chat_id, message_id=msg.message_id, reply_markup=characters_buttons)
 
     def load_language_button(self, upd: Update, context: CallbackContext, option: str):
         chat_id = upd.callback_query.message.chat.id
@@ -1326,9 +1200,7 @@ Language: {user.language}"""
             reply_markup=self.get_options_keyboard(chat_id),
         )
 
-    def keyboard_language_button(
-        self, upd: Update, context: CallbackContext, option: str
-    ):
+    def keyboard_language_button(self, upd: Update, context: CallbackContext, option: str):
         chat_id = upd.callback_query.message.chat.id
         msg = upd.callback_query.message
         #  if "return char markup" button - clear markup
@@ -1349,9 +1221,7 @@ Language: {user.language}"""
             data_load=self.BTN_LANG_LOAD,
             keyboard_colum=4,
         )
-        context.bot.editMessageReplyMarkup(
-            chat_id=chat_id, message_id=msg.message_id, reply_markup=lang_buttons
-        )
+        context.bot.editMessageReplyMarkup(chat_id=chat_id, message_id=msg.message_id, reply_markup=lang_buttons)
 
     def load_voice_button(self, upd: Update, context: CallbackContext, option: str):
         chat_id = upd.callback_query.message.chat.id
@@ -1400,9 +1270,7 @@ Language: {user.language}"""
             data_load=self.BTN_VOICE_LOAD,
             keyboard_colum=4,
         )
-        context.bot.editMessageReplyMarkup(
-            chat_id=chat_id, message_id=msg.message_id, reply_markup=voice_buttons
-        )
+        context.bot.editMessageReplyMarkup(chat_id=chat_id, message_id=msg.message_id, reply_markup=voice_buttons)
 
     # =============================================================================
     # load characters char_file from ./characters
@@ -1426,22 +1294,14 @@ Language: {user.language}"""
             voice = "🔇"
 
         if self.check_user_rule(chat_id, self.BTN_DOWNLOAD):
-            keyboard_raw.append(
-                InlineKeyboardButton(text="💾Save", callback_data=self.BTN_DOWNLOAD)
-            )
+            keyboard_raw.append(InlineKeyboardButton(text="💾Save", callback_data=self.BTN_DOWNLOAD))
         # if self.check_user_rule(chat_id, self.BTN_LORE):
         #    keyboard_raw.append(InlineKeyboardButton(
         #        text="📜Lore", callback_data=self.BTN_LORE))
         if self.check_user_rule(chat_id, self.BTN_CHAR_LIST):
-            keyboard_raw.append(
-                InlineKeyboardButton(
-                    text="🎭Chars", callback_data=self.BTN_CHAR_LIST + "-9999"
-                )
-            )
+            keyboard_raw.append(InlineKeyboardButton(text="🎭Chars", callback_data=self.BTN_CHAR_LIST + "-9999"))
         if self.check_user_rule(chat_id, self.BTN_RESET):
-            keyboard_raw.append(
-                InlineKeyboardButton(text="⚠Reset", callback_data=self.BTN_RESET)
-            )
+            keyboard_raw.append(InlineKeyboardButton(text="⚠Reset", callback_data=self.BTN_RESET))
         if self.check_user_rule(chat_id, self.BTN_LANG_LIST):
             keyboard_raw.append(
                 InlineKeyboardButton(
@@ -1450,61 +1310,29 @@ Language: {user.language}"""
                 )
             )
         if self.check_user_rule(chat_id, self.BTN_VOICE_LIST):
-            keyboard_raw.append(
-                InlineKeyboardButton(
-                    text=voice + "Voice", callback_data=self.BTN_VOICE_LIST + "0"
-                )
-            )
-        if (
-            self.check_user_rule(chat_id, self.BTN_PRESET_LIST)
-            and generator_script.generator.preset_change_allowed
-        ):
-            keyboard_raw.append(
-                InlineKeyboardButton(
-                    text="🔧Presets", callback_data=self.BTN_PRESET_LIST + "0"
-                )
-            )
-        if (
-            self.check_user_rule(chat_id, self.BTN_MODEL_LIST)
-            and generator_script.generator.model_change_allowed
-        ):
-            keyboard_raw.append(
-                InlineKeyboardButton(
-                    text="🔨Model", callback_data=self.BTN_MODEL_LIST + "0"
-                )
-            )
+            keyboard_raw.append(InlineKeyboardButton(text=voice + "Voice", callback_data=self.BTN_VOICE_LIST + "0"))
+        if self.check_user_rule(chat_id, self.BTN_PRESET_LIST) and generator_script.generator.preset_change_allowed:
+            keyboard_raw.append(InlineKeyboardButton(text="🔧Presets", callback_data=self.BTN_PRESET_LIST + "0"))
+        if self.check_user_rule(chat_id, self.BTN_MODEL_LIST) and generator_script.generator.model_change_allowed:
+            keyboard_raw.append(InlineKeyboardButton(text="🔨Model", callback_data=self.BTN_MODEL_LIST + "0"))
         if self.check_user_rule(chat_id, self.BTN_DELETE):
-            keyboard_raw.append(
-                InlineKeyboardButton(text="❌Close", callback_data=self.BTN_DELETE)
-            )
+            keyboard_raw.append(InlineKeyboardButton(text="❌Close", callback_data=self.BTN_DELETE))
         return InlineKeyboardMarkup([keyboard_raw])
 
     def get_chat_keyboard(self, chat_id=0):
         keyboard_raw = []
         if self.check_user_rule(chat_id, self.BTN_NEXT):
-            keyboard_raw.append(
-                InlineKeyboardButton(text="▶Next", callback_data=self.BTN_NEXT)
-            )
+            keyboard_raw.append(InlineKeyboardButton(text="▶Next", callback_data=self.BTN_NEXT))
         if self.check_user_rule(chat_id, self.BTN_CONTINUE):
-            keyboard_raw.append(
-                InlineKeyboardButton(text="➡Continue", callback_data=self.BTN_CONTINUE)
-            )
+            keyboard_raw.append(InlineKeyboardButton(text="➡Continue", callback_data=self.BTN_CONTINUE))
         if self.check_user_rule(chat_id, self.BTN_DEL_WORD):
-            keyboard_raw.append(
-                InlineKeyboardButton(text="⬅Del word", callback_data=self.BTN_DEL_WORD)
-            )
+            keyboard_raw.append(InlineKeyboardButton(text="⬅Del word", callback_data=self.BTN_DEL_WORD))
         if self.check_user_rule(chat_id, self.BTN_REGEN):
-            keyboard_raw.append(
-                InlineKeyboardButton(text="♻Regenerate", callback_data=self.BTN_REGEN)
-            )
+            keyboard_raw.append(InlineKeyboardButton(text="♻Regenerate", callback_data=self.BTN_REGEN))
         if self.check_user_rule(chat_id, self.BTN_CUTOFF):
-            keyboard_raw.append(
-                InlineKeyboardButton(text="✖Cutoff", callback_data=self.BTN_CUTOFF)
-            )
+            keyboard_raw.append(InlineKeyboardButton(text="✖Cutoff", callback_data=self.BTN_CUTOFF))
         if self.check_user_rule(chat_id, self.BTN_OPTION):
-            keyboard_raw.append(
-                InlineKeyboardButton(text="⚙Options", callback_data=self.BTN_OPTION)
-            )
+            keyboard_raw.append(InlineKeyboardButton(text="⚙Options", callback_data=self.BTN_OPTION))
         return InlineKeyboardMarkup([keyboard_raw])
 
     def get_switch_keyboard(
@@ -1535,9 +1363,7 @@ Language: {user.language}"""
             if column >= keyboard_colum:
                 column = 0
             characters_buttons[-1].append(
-                InlineKeyboardButton(
-                    text=f"{opt_list[i]}", callback_data=f"{data_load}{str(i)}"
-                )
+                InlineKeyboardButton(text=f"{opt_list[i]}", callback_data=f"{data_load}{str(i)}")
             )
             i += 1
         # add switch buttons
