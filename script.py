@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 # This module added to get compatibility with text-generation-webui-telegram_bot
 
-config_file_path = "extensions/telegram_bot/configs/extension_config.json"
+config_file_path = "extensions/telegram_bot/configs/ext_config.json"
 
 
 def run_server(token=""):

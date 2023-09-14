@@ -137,7 +137,7 @@ class TelegramBotWrapper:
 
     def __init__(
         self,
-        config_file_path="configs/run_config.json",
+        config_file_path="configs/app_config.json",
     ):
         """Init telegram bot class. Use run_telegram_bot() to initiate bot.
 
