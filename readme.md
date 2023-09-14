@@ -1,31 +1,37 @@
-#Extension connecting llm_python to telegram bot api.
--
+
 ![Image1](https://github.com/innightwolfsleep/storage/raw/main/textgen_telegram.PNG)
 
-Providing chat like telegram bot interface with [abetlen/llama-cpp-python](https://github.com/abetlen/llama-cpp-python), [langchain](https://pypi.org/project/langchain/) or transformers (tbc) 
+Providing chat like telegram bot interface for [abetlen/llama-cpp-python](https://github.com/abetlen/llama-cpp-python) or [huggingface/transformers](https://github.com/huggingface/transformers).  
+In addition, can an extension for [oobabooga/text-generation-webui](https://github.com/oobabooga/text-generation-webui).
 
-REQUIREMENTS:
-- python-telegram-bot==13.15
-- pyyaml
-- deep-translator==1.9.2
-- llama-cpp-python
+---------------
+HOW TO INSTALL (**standalone app**):
+1) clone this repo  
+`git clone https://github.com/innightwolfsleep/llm_telegram_bot `
+2) install requirements.  
+`pip install -r llm_telegram_bot\requirements_app.txt`
 
-HOW TO INSTALL:
-1) clone this repo
-```
-git clone https://github.com/innightwolfsleep/llm_telegram_bot 
-```
-2) install requirements. 
-```
-pip install -r llm_telegram_bot\requirements.txt
-```
-
-HOW TO USE:
+HOW TO RUN (**standalone app**):
 1) get bot token from https://t.me/BotFather 
 2) add bot token to environment (look `.env.example`) OR file `configs/telegram_token.txt`
 3) move your model file to `models/`
 4) set **model_path** to your model in `configs/telegram_config.json` 
 5) start `run.cmd` or `run.sh` or `python3 run.py`
+---------------
+HOW TO INSTALL (**extension mode**):
+
+1) obviously, install  [oobabooga/text-generation-webui](https://github.com/oobabooga/text-generation-webui) first
+2) run `cmd_windows.bat` or `cmd_linux.sh`
+3) clone this repo to "text-generation-webui\extensions"  
+`git clone https://github.com/innightwolfsleep/text-generation-webui-telegram_bot text-generation-webui\extensions\telegram_bot`
+2) install requirements  
+`pip install -r text-generation-webui\extensions\telegram_bot\requirements_ext.txt`
+
+HOW TO USE (**extension mode**):
+1) add your bot token in `text-generation-webui\extensions\telegram_bot\configs\telegram_token.txt` file. (ask https://t.me/BotFather how to get token)
+3) run server.py with `--extensions telegram_bot`
+4) (optional) if you are facing internet issue, change `proxy_url` at `extension_config.json` into your own proxy. For example: `https://127.0.0.1:10808`
+---------------
 
 FEATURES:
 - chat and notebook modes
@@ -51,8 +57,11 @@ FEATURES:
 
 CONFIGURATION:
 
+`run_config.json` - config for running as standalone app (`run.sh` or `run.cmd`)  
+`extension_config` - config for running as extension for [oobabooga/text-generation-webui](https://github.com/oobabooga/text-generation-webui)
+
 ```
-telegram_config.json
+x_config.json
     bot_mode=admin  
         specific bot mode. admin for personal use
             - admin - bot answer for everyone in chat-like mode. All buttons, include settings-for-all are avariable for everyone. (Default)
