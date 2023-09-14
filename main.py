@@ -25,10 +25,10 @@ from telegram.ext import (
 from telegram.ext import Updater
 
 try:
-    from extensions.telegram_bot.source.telegram_bot_user import TelegramBotUser as User
-    import extensions.telegram_bot.source.telegram_bot_generator as generator_script
-    from extensions.telegram_bot.source.telegram_bot_silero import Silero as Silero
-    from extensions.telegram_bot.source.telegram_bot_sd_api import SdApi as SdApi
+    from extensions.telegram_bot.source.user import TelegramBotUser as User
+    import extensions.telegram_bot.source.generator as generator_script
+    from extensions.telegram_bot.source.silero import Silero as Silero
+    from extensions.telegram_bot.source.sd_api import SdApi as SdApi
 except ImportError:
     from source.user import TelegramBotUser as User
     from source import generator as generator_script
@@ -137,7 +137,7 @@ class TelegramBotWrapper:
 
     def __init__(
         self,
-        config_file_path="configs/telegram_config.json",
+        config_file_path="configs/app_config.json",
     ):
         """Init telegram bot class. Use run_telegram_bot() to initiate bot.
 
@@ -155,6 +155,7 @@ class TelegramBotWrapper:
         self.user_rules_file_path = "telegram_user_rules.json"
         self.sd_api_url = "http://127.0.0.1:7860"
         self.sd_config_file_path = "telegram_sd_config.json"
+        self.proxy_url = ""
         # Set bot mode
         self.bot_mode = "admin"
         self.generator_script = ""  # mode loaded from config
@@ -228,6 +229,7 @@ class TelegramBotWrapper:
                 )
                 self.stopping_strings = config.get("stopping_strings", self.stopping_strings)
                 self.eos_token = config.get("eos_token", self.eos_token)
+                self.proxy_url = config.get("proxy_url", self.proxy_url)
         else:
             logging.error("Cant find config_file " + config_file_path)
 
@@ -240,11 +242,14 @@ class TelegramBotWrapper:
         :param token_file_name: (str) The name of the file containing the bot token. Default is `None`.
         :return: None
         """
+        request_kwargs = {
+            "proxy_url": self.proxy_url,
+        }
         if not bot_token:
             token_file_name = token_file_name or self.token_file_path
             with open(token_file_name, "r", encoding="utf-8") as f:
                 bot_token = f.read().strip()
-        self.updater = Updater(token=bot_token, use_context=True)
+        self.updater = Updater(token=bot_token, use_context=True, request_kwargs=request_kwargs)
         self.updater.dispatcher.add_handler(CommandHandler("start", self.cb_start_command)),
         self.updater.dispatcher.add_handler(MessageHandler(Filters.text, self.cb_get_message))
         self.updater.dispatcher.add_handler(

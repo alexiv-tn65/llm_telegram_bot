@@ -27,8 +27,7 @@ def init(script="GeneratorLlamaCpp", model_path="", n_ctx=4096, n_gpu_layers=0):
         generator_class = getattr(importlib.import_module("source.generators." + script), "Generator")
     except ImportError:
         generator_class = getattr(
-            importlib.import_module("extensions.source.telegram_bot.generators." + script),
-            "Generator",
+            importlib.import_module("extensions.telegram_bot.source.generators." + script), "Generator"
         )
     global generator
     generator = generator_class(model_path, n_ctx=n_ctx, n_gpu_layers=n_gpu_layers)

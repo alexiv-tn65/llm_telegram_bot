@@ -4,7 +4,7 @@ from threading import Thread
 from main import TelegramBotWrapper
 from dotenv import load_dotenv
 
-config_file_path = "configs/telegram_config.json"
+config_file_path = "configs/app_config.json"
 
 
 def run_server(token):
