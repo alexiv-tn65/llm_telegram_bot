@@ -7,6 +7,7 @@ An EXTension for [oobabooga/text-generation-webui](https://github.com/oobabooga/
 
 Provide telegram chat with various additional functional like buttons, prefixes, voice/image generation.
 
+
 ---------------
 HOW TO INSTALL (**standalone app**):
 1) clone this repo  
@@ -20,6 +21,7 @@ HOW TO RUN (**standalone app**):
 3) move your model file to `models/`
 4) set **model_path** to your model in `configs/app_config.json`
 5) start `run.cmd`(windows) or `run.sh`(linux)
+
 ---------------
 HOW TO INSTALL (**extension mode**):
 1) obviously, install  [oobabooga/text-generation-webui](https://github.com/oobabooga/text-generation-webui) first, add model, set all options you need
@@ -35,6 +37,7 @@ HOW TO USE (**extension mode**):
 3) run server.py with `--extensions telegram_bot`
 ---------------
 (optional) if you are facing internet issue, change `proxy_url` at `app_config.json` into your own proxy. For example: `https://127.0.0.1:10808`
+
 
 FEATURES:
 - chat and notebook modes
