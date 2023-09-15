@@ -18,7 +18,7 @@ HOW TO RUN (**standalone app**):
 1) get bot token from https://t.me/BotFather 
 2) add bot token to environment (look `.env.example`) OR file `configs/telegram_token.txt`
 3) move your model file to `models/`
-4) set **model_path** to your model in `configs/app_config.json` 
+4) set **model_path** to your model in `configs/app_config.json`
 5) start `run.cmd`(windows) or `run.sh`(linux)
 ---------------
 HOW TO INSTALL (**extension mode**):
@@ -33,8 +33,8 @@ HOW TO USE (**extension mode**):
 1) get bot token from https://t.me/BotFather 
 2) add your bot token in `text-generation-webui\extensions\telegram_bot\configs\telegram_token.txt` file or oobabooga environment
 3) run server.py with `--extensions telegram_bot`
-4) (optional) if you are facing internet issue, change `proxy_url` at `extension_config.json` into your own proxy. For example: `https://127.0.0.1:10808`
 ---------------
+(optional) if you are facing internet issue, change `proxy_url` at `app_config.json` into your own proxy. For example: `https://127.0.0.1:10808`
 
 FEATURES:
 - chat and notebook modes
