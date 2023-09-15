@@ -42,6 +42,7 @@ FEATURES:
 - translation_as_hidden_text option in .cfg - if you want to learn english with bot)))
 - telegram_users.txt - list of permitted users (if empty - permit for all)
 - antiflood - one message per 15 sec from one user
+- improved group chatting mode
 
 
 CONFIGURATION:
@@ -68,6 +69,7 @@ x_config.json
             USERNAME - user nickname (superguy)
             ID - user Id (999999999)
         so, user_name_template="USERNAME FIRSTNAME ID" translatede to user name "superguy Jon 999999999"
+        but if you planed to use template and group chat - you shold add "\n" sign to stopping_strings to prevent bot impersonating!!!
     generator_script=GeneratorLlamaCpp
         name of generator script (generators folder):
             - generator_llama_cpp - based on llama-cpp-python, recommended
@@ -104,6 +106,7 @@ x_config.json
     telegram_sd_config=configs\\telegram_sd_config.json
         stable diffusion api config
     stopping_strings=<END>,<START>,end{code}
+        generating settings - which text pattern stopping text generating? Add "\n" if bot sent too much text.
     eos_token=None
         generating settings
     translation_as_hidden_text=on
