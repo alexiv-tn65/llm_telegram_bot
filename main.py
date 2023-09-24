@@ -14,7 +14,7 @@ import urllib3
 from deep_translator import GoogleTranslator as Translator
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaAudio
 from telegram.constants import CHATACTION_TYPING
-from telegram.error import BadRequest
+from telegram.error import BadRequest, NetworkError
 from telegram.ext import (
     CallbackContext,
     Filters,
@@ -777,7 +777,8 @@ class TelegramBotWrapper:
             if system_message == self.MSG_SYSTEM:
                 context.bot.send_message(text=answer, chat_id=chat_id)
             elif system_message == self.MSG_SD_API:
-                user.truncate_only_history()
+                user.user_in = user.user_in[:-1]
+                user.history = user.history[:-2]
                 self.send_sd_image(upd, context, answer, user_text)
             else:
                 if system_message == self.MSG_DEL_LAST:
@@ -958,7 +959,8 @@ Language: {user.language}"""
         user = self.users[chat_id]
         # add pretty "retyping" to message text
         # remove last bot answer, read and remove last user reply
-        user_in = user.truncate_only_history()
+        user_in, _ = user.truncate()
+        user.msg_id.append(msg.message_id)
         # get answer and replace message text!
         answer, _ = self.generate_answer(user_in=user_in, chat_id=chat_id)
         self.edit_message(
