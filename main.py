@@ -522,6 +522,7 @@ class TelegramBotWrapper:
         # Extract user input and chat ID
         user_text = upd.message.text
         chat_id = upd.message.chat.id
+        self.init_check_user(chat_id)
         user = self.users[chat_id]
         if not self.check_user_permission(chat_id):
             return False
@@ -532,7 +533,6 @@ class TelegramBotWrapper:
         try:
             if self.check_user_rule(chat_id=chat_id, option=const.GET_MESSAGE) is not True:
                 return False
-            self.init_check_user(chat_id)
             # Generate answer and replace "typing" message with it
             if user_text not in settings.sd_api_prefixes:
                 user_text = self.prepare_text(user_text, user, "to_model")
