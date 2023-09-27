@@ -10,18 +10,6 @@ class TelegramBotUser:
     Class stored individual tg user info (history, message sequence, etc...) and provide some actions
     """
 
-    default_messages_template = {  # dict of messages templates for various situations. Use _VAR_ replacement
-        "mem_lost": "<b>MEMORY LOST!</b>\nSend /start or any text for new session.",  # refers to non-existing
-        "retyping": "<i>_NAME2_ retyping...</i>",  # added when "regenerate button" working
-        "typing": "<i>_NAME2_ typing...</i>",  # added when generating working
-        "char_loaded": "_NAME2_ LOADED!\n_GREETING_ ",  # When new char loaded
-        "preset_loaded": "LOADED PRESET: _OPEN_TAG__CUSTOM_STRING__CLOSE_TAG_",  # When new char loaded
-        "model_loaded": "LOADED MODEL: _OPEN_TAG__CUSTOM_STRING__CLOSE_TAG_",  # When new char loaded
-        "mem_reset": "MEMORY RESET!\n_GREETING_",  # When history cleared
-        "hist_to_chat": "To load history - forward message to this chat",  # download history
-        "hist_loaded": "_NAME2_ LOADED!\n_GREETING_\n\nLAST MESSAGE:\n_CUSTOM_STRING_",  # load history
-    }
-
     def __init__(
         self,
         char_file="",
@@ -55,9 +43,10 @@ class TelegramBotUser:
         self.user_in: list = []  # "user input history": [["Hi!","Who are you?"]], need for regenerate option
         self.history: list = []  # "history": [["Hi!", "Hi there!","Who are you?", "I am you assistant."]],
         self.msg_id: list = []  # "msg_id": [143, 144, 145, 146],
-        self.greeting: str = greeting
+        self.greeting: str = greeting # "hello" or something
+        self.last_msg_timestamp: int = 0 # last message timestamp to avoid message flood.
 
-    def truncate(self):
+    def truncate_last_mesage(self):
         """Truncate user history (minus one answer and user input)
 
         Returns:
@@ -68,6 +57,20 @@ class TelegramBotUser:
         user_in = self.user_in.pop()
         self.history = self.history[:-2]
         return user_in, msg_id
+
+    def history_add(self, message="", answer=""):
+        self.history.append(message)
+        self.history.append(answer)
+
+    def change_last_message(self, user_in=None, history_message=None, history_answer=None, msg_id=None):
+        if user_in:
+            self.user_in[-1] = user_in
+        if history_message:
+            self.history[-2] = history_message
+        if history_answer:
+            self.history[-1] = history_answer
+        if msg_id:
+            self.msg_id[-1] = msg_id
 
     def reset(self):
         """Clear bot history and reset to default everything but language, silero and chat_file."""
