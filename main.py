@@ -117,7 +117,7 @@ class TelegramBotWrapper:
         # SdApi initiate
         self.SdApi = SdApi(self.sd_api_url, self.sd_config_file_path)
         # generator initiate
-        logging.info("Telegram bot generator script: " + str(self.generator_script))
+        logging.info("Generator script: " + str(self.generator_script) + "\n" + json.dumps(self.generation_params))
         tp.generator_script.init(
             self.generator_script,
             self.model_path,
