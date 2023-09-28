@@ -6,7 +6,7 @@ import time
 from os import listdir
 from pathlib import Path
 from re import split, sub
-from threading import Thread, Lock, Event
+from threading import Thread, Event
 from typing import Dict
 
 import backoff
@@ -25,50 +25,39 @@ from telegram.ext import (
 from telegram.ext import Updater
 
 try:
-    import extensions.telegram_bot.source.logic as tp
+    import extensions.telegram_bot.source.text_process as tp
     import extensions.telegram_bot.source.const as const
-    import extensions.telegram_bot.source.settings as settings
+    from extensions.telegram_bot.source.conf import Config
     from extensions.telegram_bot.source.user import TelegramBotUser as User
     from extensions.telegram_bot.source.silero import Silero as Silero
     from extensions.telegram_bot.source.sd_api import SdApi as SdApi
 except ImportError:
     import source.text_process as tp
     import source.const as const
-    import source.settings as settings
+    from source.conf import Config
     from source.user import TelegramBotUser as User
     from source.silero import Silero as Silero
     from source.sd_api import SdApi as SdApi
 
-logging.basicConfig(
-    format="%(asctime)s %(levelname)s %(message)s",
-    datefmt="%Y.%m.%d %I:%M:%S %p",
-    level=logging.INFO,
-)
-
 
 class TelegramBotWrapper:
+    # Config keeper
+    cfg: Config = Config()
+
     # Set dummy obj for telegram updater
-    updater = None
-    # Define generator lock to prevent GPU overloading
-    generator_lock = Lock()
-    # Bot message open/close html tags. Set ["", ""] to disable.
-    translation_as_hidden_text = "off"
+    updater: Updater = None
 
     # dict of User data dicts, here stored all users' session info.
     users: Dict[int, User] = {}
 
-    # Delay between new messages to avoid flooding (sec)
-    flood_avoid_delay = 10.0
-
-    def __init__(
-            self,
-            config_file_path="configs/app_config.json",
-    ):
+    def __init__(self, config_file_path="configs/app_config.json"):
         """Init telegram bot class. Use run_telegram_bot() to initiate bot.
 
         Args
             config_file_path: path to config file
         """
+        # Set main config file
+        self.config_file_path = config_file_path
         # Set internal config vars
         self.history_dir_path = "history"
         self.characters_dir_path = "characters"
@@ -92,8 +81,6 @@ class TelegramBotWrapper:
         # Set translator
         self.model_lang = "en"
         self.user_lang = "en"
-        # Set main config file
-        self.config_file_path = config_file_path
         # Load config_file_path if existed, overwrite current config vars
         self.load_config_file(self.config_file_path)
         # Load user generator parameters
@@ -149,8 +136,8 @@ class TelegramBotWrapper:
                 self.user_rules_file_path = config.get("user_rules_file_path", self.user_rules_file_path)
                 self.sd_api_url = config.get("sd_api_url", self.sd_api_url)
                 self.sd_config_file_path = config.get("sd_config_file_path", self.sd_config_file_path)
-                self.translation_as_hidden_text = config.get(
-                    "translation_as_hidden_text", self.translation_as_hidden_text
+                self.cfg.translation_as_hidden_text = config.get(
+                    "translation_as_hidden_text", self.cfg.translation_as_hidden_text
                 )
                 self.proxy_url = config.get("proxy_url", self.proxy_url)
         else:
@@ -225,13 +212,21 @@ class TelegramBotWrapper:
             parse_mode="HTML",
         )
 
+    def get_user_telegram_name(self, upd: Update) -> str:
+        message = upd.message or upd.callback_query.message
+        user_name = self.user_name_template.replace("FIRSTNAME", message.from_user.first_name or "")
+        user_name = user_name.replace("LASTNAME", message.from_user.last_name or "")
+        user_name = user_name.replace("USERNAME", message.from_user.username or "")
+        user_name = user_name.replace("ID", str(message.from_user.id) or "")
+        return user_name
+
     def make_template_message(self, request: str, chat_id: int, custom_string="") -> str:
         # create a message using default_messages_template or return
         # UNKNOWN_TEMPLATE
         if chat_id in self.users:
             user = self.users[chat_id]
-            if request in settings.default_messages_template:
-                msg = settings.default_messages_template[request]
+            if request in const.DEFAULT_MESSAGE_TEMPLATE:
+                msg = const.DEFAULT_MESSAGE_TEMPLATE[request]
                 msg = msg.replace("_CHAT_ID_", str(chat_id))
                 msg = msg.replace("_NAME1_", user.name1)
                 msg = msg.replace("_NAME2_", user.name2)
@@ -244,8 +239,8 @@ class TelegramBotWrapper:
                     "_CUSTOM_STRING_",
                     self.prepare_text(custom_string, user, "to_user"),
                 )
-                msg = msg.replace("_OPEN_TAG_", settings.html_tag[0])
-                msg = msg.replace("_CLOSE_TAG_", settings.html_tag[1])
+                msg = msg.replace("_OPEN_TAG_", self.cfg.html_tag[0])
+                msg = msg.replace("_CLOSE_TAG_", self.cfg.html_tag[1])
                 return msg
             else:
                 return const.UNKNOWN_TEMPLATE
@@ -308,10 +303,10 @@ class TelegramBotWrapper:
         return typing_active
 
     def thread_typing_status(self, context: CallbackContext, chat_id: int, typing_active: Event):
-        limit_counter = int(settings.generation_timeout / 6)
+        limit_counter = int(self.cfg.generation_timeout / 5)
         while typing_active.is_set() and limit_counter > 0:
             context.bot.send_chat_action(chat_id=chat_id, action=CHATACTION_TYPING)
-            time.sleep(6)
+            time.sleep(5)
             limit_counter -= 1
 
     def check_user_permission(self, chat_id):
@@ -328,7 +323,7 @@ class TelegramBotWrapper:
             return False
 
     def check_user_flood(self, user: User):
-        if time.time() - self.flood_avoid_delay > user.last_msg_timestamp:
+        if time.time() - self.cfg.flood_avoid_delay > user.last_msg_timestamp:
             user.last_msg_timestamp = time.time()
             return True
         else:
@@ -372,18 +367,19 @@ class TelegramBotWrapper:
         if direction not in ["to_model", "no_html"]:
             text = text.replace("#", "&#35;").replace("<", "&#60;").replace(">", "&#62;")
             original_text = original_text.replace("#", "&#35;").replace("<", "&#60;").replace(">", "&#62;")
-            if self.model_lang != user.language and direction == "to_user" and self.translation_as_hidden_text == "on":
+            if self.model_lang != user.language and direction == "to_user" \
+                    and self.cfg.translation_as_hidden_text == "on":
                 text = (
-                        settings.html_tag[0]
+                        self.cfg.html_tag[0]
                         + original_text
-                        + settings.html_tag[1]
+                        + self.cfg.html_tag[1]
                         + "\n"
-                        + settings.translate_html_tag[0]
+                        + self.cfg.translate_html_tag[0]
                         + text
-                        + settings.translate_html_tag[1]
+                        + self.cfg.translate_html_tag[1]
                 )
             else:
-                text = settings.html_tag[0] + text + settings.html_tag[1]
+                text = self.cfg.html_tag[0] + text + self.cfg.html_tag[1]
         return text
 
     @backoff.on_exception(
@@ -396,7 +392,7 @@ class TelegramBotWrapper:
         user = self.users[chat_id]
         try:
             file_list = self.SdApi.txt_to_image(answer)
-            answer = answer.replace(settings.sd_api_prompt_of.replace("OBJECT", user_text[1:].strip()), "")
+            answer = answer.replace(self.cfg.sd_api_prompt_of.replace("OBJECT", user_text[1:].strip()), "")
             for char in ["[", "]", "{", "}", "(", ")", "*", '"', "'"]:
                 answer = answer.replace(char, "")
             answer = self.prepare_text(answer, user)
@@ -534,18 +530,11 @@ class TelegramBotWrapper:
             if self.check_user_rule(chat_id=chat_id, option=const.GET_MESSAGE) is not True:
                 return False
             # Generate answer and replace "typing" message with it
-            if user_text not in settings.sd_api_prefixes:
+            if user_text not in self.cfg.sd_api_prefixes:
                 user_text = self.prepare_text(user_text, user, "to_model")
-            user_name = self.user_name_template.replace("FIRSTNAME", upd.message.from_user.first_name or "")
-            user_name = user_name.replace("LASTNAME", upd.message.from_user.last_name or "")
-            user_name = user_name.replace("USERNAME", upd.message.from_user.username or "")
-            user_name = user_name.replace("ID", str(upd.message.from_user.id) or "")
-            answer, system_message = tp.generate_answer(user_in=user_text,
-                                                        user=user,
-                                                        user_name=user_name,
-                                                        generation_params=self.generation_params,
-                                                        bot_mode=self.bot_mode,
-                                                        generator_lock=self.generator_lock)
+            answer, system_message = tp.generate_answer(text_in=user_text, user=user, bot_mode=self.bot_mode,
+                                                        generation_params=self.generation_params, cfg=self.cfg,
+                                                        name_in=self.get_user_telegram_name(upd))
             if system_message == const.MSG_SYSTEM:
                 context.bot.send_message(text=answer, chat_id=chat_id)
             elif system_message == const.MSG_SD_API:
@@ -609,6 +598,8 @@ class TelegramBotWrapper:
             self.on_reset_history_button(upd=upd, context=context)
         elif option == const.BTN_CONTINUE and self.check_user_rule(chat_id, option):
             self.on_continue_message_button(upd=upd, context=context)
+        elif option == const.BTN_IMPERSONATE and self.check_user_rule(chat_id, option):
+            self.on_impersonate_button(upd=upd, context=context)
         elif option == const.BTN_NEXT and self.check_user_rule(chat_id, option):
             self.on_next_message_button(upd=upd, context=context)
         elif option == const.BTN_DEL_WORD and self.check_user_rule(chat_id, option):
@@ -675,16 +666,24 @@ Language: {user.language}"""
         message_id = upd.callback_query.message.message_id
         context.bot.deleteMessage(chat_id=chat_id, message_id=message_id)
 
+    def on_impersonate_button(self, upd: Update, context: CallbackContext):
+        chat_id = upd.callback_query.message.chat.id
+        user = self.users[chat_id]
+        self.clean_last_message_markup(context, chat_id)
+        answer, _ = tp.generate_answer(text_in=const.GENERATOR_MODE_IMPERSONATE, user=user, bot_mode=self.bot_mode,
+                                       generation_params=self.generation_params, cfg=self.cfg,
+                                       name_in=self.get_user_telegram_name(upd))
+        message = self.send_message(text=answer, chat_id=chat_id, context=context)
+        user.msg_id.append(message.message_id)
+        user.save_user_history(chat_id, self.history_dir_path)
+
     def on_next_message_button(self, upd: Update, context: CallbackContext):
         chat_id = upd.callback_query.message.chat.id
         user = self.users[chat_id]
-        # send "typing"
         self.clean_last_message_markup(context, chat_id)
-        answer, _ = tp.generate_answer(user_in=const.GENERATOR_MODE_NEXT,
-                                       user=user,
-                                       generation_params=self.generation_params,
-                                       bot_mode=self.bot_mode,
-                                       generator_lock=self.generator_lock)
+        answer, _ = tp.generate_answer(text_in=const.GENERATOR_MODE_NEXT, user=user, bot_mode=self.bot_mode,
+                                       generation_params=self.generation_params, cfg=self.cfg,
+                                       name_in=self.get_user_telegram_name(upd))
         message = self.send_message(text=answer, chat_id=chat_id, context=context)
         user.msg_id.append(message.message_id)
         user.save_user_history(chat_id, self.history_dir_path)
@@ -694,11 +693,9 @@ Language: {user.language}"""
         message = upd.callback_query.message
         user = self.users[chat_id]
         # get answer and replace message text!
-        answer, _ = tp.generate_answer(user_in=const.GENERATOR_MODE_CONTINUE,
-                                       user=user,
-                                       generation_params=self.generation_params,
-                                       bot_mode=self.bot_mode,
-                                       generator_lock=self.generator_lock)
+        answer, _ = tp.generate_answer(text_in=const.GENERATOR_MODE_CONTINUE, user=user, bot_mode=self.bot_mode,
+                                       generation_params=self.generation_params, cfg=self.cfg,
+                                       name_in=self.get_user_telegram_name(upd))
         self.edit_message(
             text=answer,
             chat_id=chat_id,
@@ -737,11 +734,9 @@ Language: {user.language}"""
         msg = upd.callback_query.message
         user = self.users[chat_id]
         # get answer and replace message text!
-        answer, _ = tp.generate_answer(user_in=const.GENERATOR_MODE_REGENERATE,
-                                       user=user,
-                                       generation_params=self.generation_params,
-                                       bot_mode=self.bot_mode,
-                                       generator_lock=self.generator_lock)
+        answer, _ = tp.generate_answer(text_in=const.GENERATOR_MODE_REGENERATE, user=user, bot_mode=self.bot_mode,
+                                       generation_params=self.generation_params, cfg=self.cfg,
+                                       name_in=self.get_user_telegram_name(upd))
         self.edit_message(
             text=answer,
             chat_id=chat_id,
@@ -979,7 +974,7 @@ Language: {user.language}"""
         chat_id = upd.callback_query.message.chat.id
         user = self.users[chat_id]
         lang_num = int(option.replace(const.BTN_LANG_LOAD, ""))
-        language = list(settings.language_dict.keys())[lang_num]
+        language = list(self.cfg.language_dict.keys())[lang_num]
         self.users[chat_id].language = language
         send_text = f"""{user.name2},
         Conversation length{str(len(user.history))} messages.
@@ -1009,7 +1004,7 @@ Language: {user.language}"""
         shift = int(option.replace(const.BTN_LANG_LIST, ""))
         #  create list
         lang_buttons = self.get_switch_keyboard(
-            opt_list=list(settings.language_dict.keys()),
+            opt_list=list(self.cfg.language_dict.keys()),
             shift=shift,
             data_list=const.BTN_LANG_LIST,
             data_load=const.BTN_LANG_LOAD,
@@ -1076,7 +1071,7 @@ Language: {user.language}"""
             language = self.users[chat_id].language
         else:
             language = "en"
-        language_flag = settings.language_dict[language]
+        language_flag = self.cfg.language_dict[language]
         # get voice
         if chat_id in self.users:
             voice_str = self.users[chat_id].silero_speaker
@@ -1115,6 +1110,8 @@ Language: {user.language}"""
 
     def get_chat_keyboard(self, chat_id=0):
         keyboard_raw = []
+        if self.check_user_rule(chat_id, const.BTN_IMPERSONATE):
+            keyboard_raw.append(InlineKeyboardButton(text="🥸Impersonate", callback_data=const.BTN_IMPERSONATE))
         if self.check_user_rule(chat_id, const.BTN_NEXT):
             keyboard_raw.append(InlineKeyboardButton(text="▶Next", callback_data=const.BTN_NEXT))
         if self.check_user_rule(chat_id, const.BTN_CONTINUE):

@@ -1,8 +1,13 @@
 from llama_cpp import Llama
 import os
 
+try:
+    from extensions.telegram_bot.source.generators.abstract_generator import AbstractGenerator
+except ImportError:
+    from source.generators.abstract_generator import AbstractGenerator
 
-class Generator:
+
+class Generator(AbstractGenerator):
     #  Place where path to LLM file stored
     llm: Llama = None
     model_change_allowed = False  # if model changing allowed without stopping.

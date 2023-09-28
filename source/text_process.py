@@ -7,114 +7,135 @@ try:
     from extensions.telegram_bot.source.user import TelegramBotUser as User
     from extensions.telegram_bot.source.generator import generator as generator_script
     import extensions.telegram_bot.source.const as const
-    import extensions.telegram_bot.source.settings as settings
+    from extensions.telegram_bot.source.conf import Config
 except ImportError:
     from source.user import TelegramBotUser as User
     from source import generator as generator_script
     import source.const as const
-    import source.settings as settings
+    from source.conf import Config
+
+# Define generator lock to prevent GPU overloading
+generator_lock = Lock()
 
 
-def generate_answer(user_in: str,
+def generate_answer(text_in: str,
                     user: User,
-                    generator_lock: Lock,
                     bot_mode: str,
                     generation_params: Dict,
-                    user_name="") -> Tuple[str, str]:
+                    cfg: Config,
+                    name_in="") -> Tuple[str, str]:
     # if generation will fail, return "fail" answer
     answer = const.GENERATOR_FAIL
     # default result action - message
     return_msg_action = const.MSG_SEND
-
+    # if user is default equal to user1
+    name_in = user.name1 if name_in == "" else name_in
     # acquire generator lock if we can
-    generator_lock.acquire(timeout=settings.generation_timeout)
+    generator_lock.acquire(timeout=cfg.generation_timeout)
 
+    # user_input preprocessing
     try:
-        # Preprocessing: add user_in to history in right order:
-        if user_in[:2] in settings.permanent_change_name2_prefixes:
+        # Preprocessing: actions which return result immediately:
+        if text_in[:2] in cfg.permanent_change_name2_prefixes:
             # If user_in starts with perm_prefix - just replace name2
-            user.name2 = user_in[2:]
+            user.name2 = text_in[2:]
             return_msg_action = const.MSG_SYSTEM
             generator_lock.release()
             return "New bot name: " + user.name2, return_msg_action
-        if user_in[:2] in settings.permanent_change_name1_prefixes:
+        if text_in[:2] in cfg.permanent_change_name1_prefixes:
             # If user_in starts with perm_prefix - just replace name2
-            user.name1 = user_in[2:]
+            user.name1 = text_in[2:]
             return_msg_action = const.MSG_SYSTEM
             generator_lock.release()
             return "New user name: " + user.name1, return_msg_action
-        if user_in[:2] in settings.permanent_add_context_prefixes:
+        if text_in[:2] in cfg.permanent_add_context_prefixes:
             # If user_in starts with perm_prefix - just replace name2
-            user.context += "\n" + user_in[2:]
+            user.context += "\n" + text_in[2:]
             return_msg_action = const.MSG_SYSTEM
             generator_lock.release()
-            return "Added to context: " + user_in[2:], return_msg_action
+            return "Added to context: " + text_in[2:], return_msg_action
+        if text_in[0] in cfg.replace_prefixes:
+            # If user_in starts with replace_prefix - fully replace last
+            # message
+            user.history[-1] = text_in[1:]
+            return_msg_action = const.MSG_DEL_LAST
+            generator_lock.release()
+            return user.history[-1], return_msg_action
+
+        # Preprocessing: actions which not depends on user input:
         if bot_mode in [const.MODE_QUERY]:
             user.history = []
+
+        # Preprocessing: add user_in/names/whitespaces to history in right order depends on mode:
         if bot_mode in [const.MODE_NOTEBOOK]:
             # If notebook mode - append to history only user_in, no
             # additional preparing;
-            user.user_in.append(user_in)
-            user.history.append("")
-            user.history.append(user_in)
-        elif user_in == const.GENERATOR_MODE_NEXT:
+            user.text_in.append(text_in)
+            user.history_add("", text_in)
+        elif text_in == const.GENERATOR_MODE_IMPERSONATE:
+            # if impersonate - append to history only "name1:", no
+            # adding "" history line to prevent bug in history sequence,
+            # add "name1:" prefix for generation
+            user.text_in.append(text_in)
+            user.name_in.append(name_in)
+            user.history_add("", name_in + ":")
+        elif text_in == const.GENERATOR_MODE_NEXT:
             # if user_in is "" - no user text, it is like continue generation
             # adding "" history line to prevent bug in history sequence,
             # add "name2:" prefix for generation
-            user.user_in.append(user_in)
-            user.history.append("")
-            user.history.append(user.name2 + ":")
-        elif user_in == const.GENERATOR_MODE_REGENERATE:
-            user.history[-1] = user.name2 + ":"
-        elif user_in == const.GENERATOR_MODE_CONTINUE:
+            user.text_in.append(text_in)
+            user.name_in.append(name_in)
+            user.history_add("", user.name2 + ":")
+        elif text_in == const.GENERATOR_MODE_REGENERATE:
+            if user.text_in[-1] == const.GENERATOR_MODE_IMPERSONATE:
+                user.history[-1] = user.name_in[-1] + ":"
+            elif user.text_in[-1][0] in cfg.impersonate_prefixes:
+                user.history[-1] = user.name_in[-1] + ":"
+            else:
+                user.history[-1] = user.name2 + ":"
+        elif text_in == const.GENERATOR_MODE_CONTINUE:
             # if user_in is "" - no user text, it is like continue generation
             # adding "" history line to prevent bug in history sequence,
             # add "name2:" prefix for generation
             pass
-        elif user_in[0] in settings.sd_api_prefixes:
+        elif text_in[0] in cfg.sd_api_prefixes:
             # If user_in starts with prefix - impersonate-like (if you try to get "impersonate view")
             # adding "" line to prevent bug in history sequence, user_in is
             # prefix for bot answer
-            if len(user_in) == 1:
-                user.user_in.append(user_in)
-                user.history.append("")
-                user.history.append(settings.sd_api_prompt_self)
+            user.text_in.append(text_in)
+            user.name_in.append(name_in)
+            if len(text_in) == 1:
+                user.history_add("", cfg.sd_api_prompt_self)
             else:
-                user.user_in.append(user_in)
-                user.history_add("", settings.sd_api_prompt_of.replace("OBJECT", user_in[1:].strip()))
+                user.history_add("", cfg.sd_api_prompt_of.replace("OBJECT", text_in[1:].strip()))
             return_msg_action = const.MSG_SD_API
-        elif user_in[0] in settings.impersonate_prefixes:
+        elif text_in[0] in cfg.impersonate_prefixes:
             # If user_in starts with prefix - impersonate-like (if you try to get "impersonate view")
             # adding "" line to prevent bug in history sequence, user_in is
             # prefix for bot answer
-            user.user_in.append(user_in)
-            user.history_add("", user_in[1:] + ":")
-        elif user_in[0] in settings.replace_prefixes:
-            # If user_in starts with replace_prefix - fully replace last
-            # message
-            user.user_in.append(user_in)
-            user.history[-1] = user_in[1:]
-            return_msg_action = const.MSG_DEL_LAST
-            return user.history[-1], return_msg_action
+            user.text_in.append(text_in)
+            user.name_in.append(text_in[1:])
+            user.history_add("", text_in[1:] + ":")
         else:
             # If not notebook/impersonate/continue mode then ordinary chat preparing
             # add "name1&2:" to user and bot message (generation from name2
             # point of view);
-            user.user_in.append(user_in)
-            user_name = user.name1 if user_name == "" else user_name
-            user.history.append(user_name + ": " + user_in)
+            user.text_in.append(text_in)
+            user.name_in.append(name_in)
+            user.history.append(name_in + ": " + text_in)
             user.history.append(user.name2 + ":")
     except Exception as exception:
         generator_lock.release()
         logging.error("generate_answer (prepare text part)" + str(exception))
 
-
+    # Text processing with LLM
     try:
         # Set eos_token and stopping_strings.
         stopping_strings = generation_params["stopping_strings"].copy()
         eos_token = generation_params["eos_token"]
         if bot_mode in [const.MODE_CHAT, const.MODE_CHAT_R, const.MODE_ADMIN]:
             stopping_strings += [
+                "\n" + name_in + ":",
                 "\n" + user.name1 + ":",
                 "\n" + user.name2 + ":",
             ]
@@ -181,4 +202,3 @@ def generate_answer(user_in: str,
         generator_lock.release()
         return_msg_action = const.MSG_SYSTEM
         return user.history[-1], return_msg_action
-

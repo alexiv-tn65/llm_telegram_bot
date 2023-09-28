@@ -44,7 +44,7 @@ FEATURES:
 - session for all users are separative (by chat_id)
 - local session history - conversation won't be lost if server restarts. Separated history between users and chars.
 - nice "X typing" during generating (users will not think that bot stuck)
-- buttons: continue previous message, regenerate last message, remove last messages from history, reset history button, new char loading menu
+- buttons: impersonate, continue previous message, regenerate last message, remove last messages from history, reset history button, new char loading menu
 - you can load new characters from text-generation-webui\characters with button
 - you can load new model during conversation with button
 - "+" or "#" user message prefix for impersonate: "#Chiharu sister" or "+Castle guard". Or even ask bot generate your own message "+You"
@@ -134,10 +134,10 @@ x_config.json
         to avoid provider blocking
 
 
-telegram_generator_params.json
+generator_params.json
     config for generator 
 
-telegram_sd_config.json
+sd_config.json
     config for stable diffusion
 
 telegram_admins.txt
@@ -146,7 +146,7 @@ telegram_admins.txt
 telegram_users.txt
     list og users id (or groups id) who permitted interact with bot. If empty - everyone permitted
 
-telegram_token.txt
+telegram_token.txt (you can use .env instead)
     telegram bot token
 
 telegram_user_rules.json
