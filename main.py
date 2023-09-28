@@ -27,22 +27,20 @@ from telegram.ext import Updater
 try:
     import extensions.telegram_bot.source.text_process as tp
     import extensions.telegram_bot.source.const as const
-    from extensions.telegram_bot.source.conf import Config
+    from extensions.telegram_bot.source.conf import cfg
     from extensions.telegram_bot.source.user import TelegramBotUser as User
     from extensions.telegram_bot.source.silero import Silero as Silero
     from extensions.telegram_bot.source.sd_api import SdApi as SdApi
 except ImportError:
     import source.text_process as tp
     import source.const as const
-    from source.conf import Config
+    from source.conf import cfg
     from source.user import TelegramBotUser as User
     from source.silero import Silero as Silero
     from source.sd_api import SdApi as SdApi
 
 
 class TelegramBotWrapper:
-    # Config keeper
-    cfg: Config = Config()
 
     # Set dummy obj for telegram updater
     updater: Updater = None
@@ -136,8 +134,8 @@ class TelegramBotWrapper:
                 self.user_rules_file_path = config.get("user_rules_file_path", self.user_rules_file_path)
                 self.sd_api_url = config.get("sd_api_url", self.sd_api_url)
                 self.sd_config_file_path = config.get("sd_config_file_path", self.sd_config_file_path)
-                self.cfg.translation_as_hidden_text = config.get(
-                    "translation_as_hidden_text", self.cfg.translation_as_hidden_text
+                cfg.translation_as_hidden_text = config.get(
+                    "translation_as_hidden_text", cfg.translation_as_hidden_text
                 )
                 self.proxy_url = config.get("proxy_url", self.proxy_url)
         else:
@@ -239,8 +237,8 @@ class TelegramBotWrapper:
                     "_CUSTOM_STRING_",
                     self.prepare_text(custom_string, user, "to_user"),
                 )
-                msg = msg.replace("_OPEN_TAG_", self.cfg.html_tag[0])
-                msg = msg.replace("_CLOSE_TAG_", self.cfg.html_tag[1])
+                msg = msg.replace("_OPEN_TAG_", cfg.html_tag[0])
+                msg = msg.replace("_CLOSE_TAG_", cfg.html_tag[1])
                 return msg
             else:
                 return const.UNKNOWN_TEMPLATE
@@ -303,7 +301,7 @@ class TelegramBotWrapper:
         return typing_active
 
     def thread_typing_status(self, context: CallbackContext, chat_id: int, typing_active: Event):
-        limit_counter = int(self.cfg.generation_timeout / 5)
+        limit_counter = int(cfg.generation_timeout / 5)
         while typing_active.is_set() and limit_counter > 0:
             context.bot.send_chat_action(chat_id=chat_id, action=CHATACTION_TYPING)
             time.sleep(5)
@@ -323,7 +321,7 @@ class TelegramBotWrapper:
             return False
 
     def check_user_flood(self, user: User):
-        if time.time() - self.cfg.flood_avoid_delay > user.last_msg_timestamp:
+        if time.time() - cfg.flood_avoid_delay > user.last_msg_timestamp:
             user.last_msg_timestamp = time.time()
             return True
         else:
@@ -368,18 +366,18 @@ class TelegramBotWrapper:
             text = text.replace("#", "&#35;").replace("<", "&#60;").replace(">", "&#62;")
             original_text = original_text.replace("#", "&#35;").replace("<", "&#60;").replace(">", "&#62;")
             if self.model_lang != user.language and direction == "to_user" \
-                    and self.cfg.translation_as_hidden_text == "on":
+                    and cfg.translation_as_hidden_text == "on":
                 text = (
-                        self.cfg.html_tag[0]
+                        cfg.html_tag[0]
                         + original_text
-                        + self.cfg.html_tag[1]
+                        + cfg.html_tag[1]
                         + "\n"
-                        + self.cfg.translate_html_tag[0]
+                        + cfg.translate_html_tag[0]
                         + text
-                        + self.cfg.translate_html_tag[1]
+                        + cfg.translate_html_tag[1]
                 )
             else:
-                text = self.cfg.html_tag[0] + text + self.cfg.html_tag[1]
+                text = cfg.html_tag[0] + text + cfg.html_tag[1]
         return text
 
     @backoff.on_exception(
@@ -392,7 +390,7 @@ class TelegramBotWrapper:
         user = self.users[chat_id]
         try:
             file_list = self.SdApi.txt_to_image(answer)
-            answer = answer.replace(self.cfg.sd_api_prompt_of.replace("OBJECT", user_text[1:].strip()), "")
+            answer = answer.replace(cfg.sd_api_prompt_of.replace("OBJECT", user_text[1:].strip()), "")
             for char in ["[", "]", "{", "}", "(", ")", "*", '"', "'"]:
                 answer = answer.replace(char, "")
             answer = self.prepare_text(answer, user)
@@ -530,10 +528,10 @@ class TelegramBotWrapper:
             if self.check_user_rule(chat_id=chat_id, option=const.GET_MESSAGE) is not True:
                 return False
             # Generate answer and replace "typing" message with it
-            if user_text not in self.cfg.sd_api_prefixes:
+            if user_text not in cfg.sd_api_prefixes:
                 user_text = self.prepare_text(user_text, user, "to_model")
             answer, system_message = tp.generate_answer(text_in=user_text, user=user, bot_mode=self.bot_mode,
-                                                        generation_params=self.generation_params, cfg=self.cfg,
+                                                        generation_params=self.generation_params,
                                                         name_in=self.get_user_telegram_name(upd))
             if system_message == const.MSG_SYSTEM:
                 context.bot.send_message(text=answer, chat_id=chat_id)
@@ -671,7 +669,7 @@ Language: {user.language}"""
         user = self.users[chat_id]
         self.clean_last_message_markup(context, chat_id)
         answer, _ = tp.generate_answer(text_in=const.GENERATOR_MODE_IMPERSONATE, user=user, bot_mode=self.bot_mode,
-                                       generation_params=self.generation_params, cfg=self.cfg,
+                                       generation_params=self.generation_params,
                                        name_in=self.get_user_telegram_name(upd))
         message = self.send_message(text=answer, chat_id=chat_id, context=context)
         user.msg_id.append(message.message_id)
@@ -682,7 +680,7 @@ Language: {user.language}"""
         user = self.users[chat_id]
         self.clean_last_message_markup(context, chat_id)
         answer, _ = tp.generate_answer(text_in=const.GENERATOR_MODE_NEXT, user=user, bot_mode=self.bot_mode,
-                                       generation_params=self.generation_params, cfg=self.cfg,
+                                       generation_params=self.generation_params,
                                        name_in=self.get_user_telegram_name(upd))
         message = self.send_message(text=answer, chat_id=chat_id, context=context)
         user.msg_id.append(message.message_id)
@@ -694,7 +692,7 @@ Language: {user.language}"""
         user = self.users[chat_id]
         # get answer and replace message text!
         answer, _ = tp.generate_answer(text_in=const.GENERATOR_MODE_CONTINUE, user=user, bot_mode=self.bot_mode,
-                                       generation_params=self.generation_params, cfg=self.cfg,
+                                       generation_params=self.generation_params,
                                        name_in=self.get_user_telegram_name(upd))
         self.edit_message(
             text=answer,
@@ -735,7 +733,7 @@ Language: {user.language}"""
         user = self.users[chat_id]
         # get answer and replace message text!
         answer, _ = tp.generate_answer(text_in=const.GENERATOR_MODE_REGENERATE, user=user, bot_mode=self.bot_mode,
-                                       generation_params=self.generation_params, cfg=self.cfg,
+                                       generation_params=self.generation_params,
                                        name_in=self.get_user_telegram_name(upd))
         self.edit_message(
             text=answer,
@@ -974,7 +972,7 @@ Language: {user.language}"""
         chat_id = upd.callback_query.message.chat.id
         user = self.users[chat_id]
         lang_num = int(option.replace(const.BTN_LANG_LOAD, ""))
-        language = list(self.cfg.language_dict.keys())[lang_num]
+        language = list(cfg.language_dict.keys())[lang_num]
         self.users[chat_id].language = language
         send_text = f"""{user.name2},
         Conversation length{str(len(user.history))} messages.
@@ -1004,7 +1002,7 @@ Language: {user.language}"""
         shift = int(option.replace(const.BTN_LANG_LIST, ""))
         #  create list
         lang_buttons = self.get_switch_keyboard(
-            opt_list=list(self.cfg.language_dict.keys()),
+            opt_list=list(cfg.language_dict.keys()),
             shift=shift,
             data_list=const.BTN_LANG_LIST,
             data_load=const.BTN_LANG_LOAD,
@@ -1071,7 +1069,7 @@ Language: {user.language}"""
             language = self.users[chat_id].language
         else:
             language = "en"
-        language_flag = self.cfg.language_dict[language]
+        language_flag = cfg.language_dict[language]
         # get voice
         if chat_id in self.users:
             voice_str = self.users[chat_id].silero_speaker

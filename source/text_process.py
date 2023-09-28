@@ -7,12 +7,12 @@ try:
     from extensions.telegram_bot.source.user import TelegramBotUser as User
     from extensions.telegram_bot.source.generator import generator as generator_script
     import extensions.telegram_bot.source.const as const
-    from extensions.telegram_bot.source.conf import Config
+    from extensions.telegram_bot.source.conf import cfg
 except ImportError:
     from source.user import TelegramBotUser as User
     from source import generator as generator_script
     import source.const as const
-    from source.conf import Config
+    from source.conf import cfg
 
 # Define generator lock to prevent GPU overloading
 generator_lock = Lock()
@@ -22,7 +22,6 @@ def generate_answer(text_in: str,
                     user: User,
                     bot_mode: str,
                     generation_params: Dict,
-                    cfg: Config,
                     name_in="") -> Tuple[str, str]:
     # if generation will fail, return "fail" answer
     answer = const.GENERATOR_FAIL
