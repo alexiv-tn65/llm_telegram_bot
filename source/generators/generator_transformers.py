@@ -1,8 +1,13 @@
 from transformers import AutoTokenizer
 import transformers
 
+try:
+    from extensions.telegram_bot.source.generators.abstract_generator import AbstractGenerator
+except ImportError:
+    from source.generators.abstract_generator import AbstractGenerator
 
-class Generator:
+
+class Generator(AbstractGenerator):
     model_change_allowed = False  # if model changing allowed without stopping.
     preset_change_allowed = True  # if preset changing allowed.
 

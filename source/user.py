@@ -40,7 +40,8 @@ class TelegramBotUser:
         self.silero_speaker: str = silero_speaker
         self.silero_model_id: str = silero_model_id
         self.turn_template: str = turn_template
-        self.user_in: list = []  # "user input history": [["Hi!","Who are you?"]], need for regenerate option
+        self.text_in: list = []  # "user input history": [["Hi!","Who are you?"]], need for regenerate option
+        self.name_in: list = []  # user_name history need to correct regenerate option
         self.history: list = []  # "history": [["Hi!", "Hi there!","Who are you?", "I am you assistant."]],
         self.msg_id: list = []  # "msg_id": [143, 144, 145, 146],
         self.greeting: str = greeting # "hello" or something
@@ -54,7 +55,8 @@ class TelegramBotUser:
             msg_id: truncated answer message id (to be deleted in chat)
         """
         msg_id = self.msg_id.pop()
-        user_in = self.user_in.pop()
+        user_in = self.text_in.pop()
+        self.name_in = self.name_in[:-1]
         self.history = self.history[:-2]
         return user_in, msg_id
 
@@ -62,9 +64,11 @@ class TelegramBotUser:
         self.history.append(message)
         self.history.append(answer)
 
-    def change_last_message(self, user_in=None, history_message=None, history_answer=None, msg_id=None):
-        if user_in:
-            self.user_in[-1] = user_in
+    def change_last_message(self, text_in=None, name_in=None, history_message=None, history_answer=None, msg_id=None):
+        if text_in:
+            self.text_in[-1] = text_in
+        if name_in:
+            self.name_in[-1] = name_in
         if history_message:
             self.history[-2] = history_message
         if history_answer:
@@ -79,7 +83,8 @@ class TelegramBotUser:
         self.context = ""
         self.example = ""
         self.turn_template = ""
-        self.user_in = []
+        self.text_in = []
+        self.name_in = []
         self.history = []
         self.msg_id = []
         self.greeting = "Hello."
@@ -101,7 +106,8 @@ class TelegramBotUser:
                 "silero_speaker": self.silero_speaker,
                 "silero_model_id": self.silero_model_id,
                 "turn_template": self.turn_template,
-                "user_in": self.user_in,
+                "text_in": self.text_in,
+                "name_in": self.name_in,
                 "history": self.history,
                 "msg_id": self.msg_id,
                 "greeting": self.greeting,
@@ -128,9 +134,10 @@ class TelegramBotUser:
             self.silero_speaker = data["silero_speaker"] if "silero_speaker" in data else "None"
             self.silero_model_id = data["silero_model_id"] if "silero_model_id" in data else "None"
             self.turn_template = data["turn_template"] if "turn_template" in data else ""
-            self.user_in = data["user_in"]
-            self.history = data["history"]
-            self.msg_id = data["msg_id"]
+            self.text_in = data["text_in"] if "text_in" in data else []
+            self.name_in = data["name_in"] if "name_in" in data else []
+            self.history = data["history"] if "history" in data else []
+            self.msg_id = data["msg_id"] if "msg_id" in data else []
             self.greeting = data["greeting"] if "greeting" in data else "Hello."
             return True
         except Exception as exception:
@@ -196,7 +203,8 @@ class TelegramBotUser:
             self.greeting = self.replace_context_templates(self.greeting)
             self.example = self.replace_context_templates(self.example)
             self.msg_id = []
-            self.user_in = []
+            self.text_in = []
+            self.name_in = []
             self.history = []
         except Exception as exception:
             print("load_char_json_file", exception)

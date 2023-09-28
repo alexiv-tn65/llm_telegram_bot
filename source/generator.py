@@ -1,12 +1,20 @@
 import importlib
+'''
+Module uses as access interface to generators/generator
+'''
+
+try:
+    from extensions.telegram_bot.source.generators.abstract_generator import AbstractGenerator
+except ImportError:
+    from source.generators.abstract_generator import AbstractGenerator
 
 #  generator obj
-generator = None
+generator: AbstractGenerator
 debug_flag = True
 
 
 # import generator
-def init(script="GeneratorLlamaCpp", model_path="", n_ctx=4096, n_gpu_layers=0):
+def init(script="generator_llama_cpp.py", model_path="", n_ctx=4096, n_gpu_layers=0):
     """Initiate generator type
     generator - is a class Generator from package generators/script
     Generator class should contain method:
@@ -26,9 +34,8 @@ def init(script="GeneratorLlamaCpp", model_path="", n_ctx=4096, n_gpu_layers=0):
     try:
         generator_class = getattr(importlib.import_module("source.generators." + script), "Generator")
     except ImportError:
-        generator_class = getattr(
-            importlib.import_module("extensions.telegram_bot.source.generators." + script), "Generator"
-        )
+        generator_class = getattr(importlib.import_module("extensions.telegram_bot.source.generators." + script),
+                                  "Generator")
     global generator
     generator = generator_class(model_path, n_ctx=n_ctx, n_gpu_layers=n_gpu_layers)
 
