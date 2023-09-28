@@ -37,6 +37,7 @@ def generate_answer(text_in: str,
     try:
         # Preprocessing: actions which return result immediately:
         if text_in[:2] in cfg.permanent_change_name2_prefixes:
+
             # If user_in starts with perm_prefix - just replace name2
             user.name2 = text_in[2:]
             return_msg_action = const.MSG_SYSTEM
@@ -67,6 +68,7 @@ def generate_answer(text_in: str,
             user.history = []
 
         # Preprocessing: add user_in/names/whitespaces to history in right order depends on mode:
+
         if bot_mode in [const.MODE_NOTEBOOK]:
             # If notebook mode - append to history only user_in, no
             # additional preparing;
@@ -113,9 +115,11 @@ def generate_answer(text_in: str,
             # If user_in starts with prefix - impersonate-like (if you try to get "impersonate view")
             # adding "" line to prevent bug in history sequence, user_in is
             # prefix for bot answer
+
             user.text_in.append(text_in)
             user.name_in.append(text_in[1:])
             user.history_add("", text_in[1:] + ":")
+
         else:
             # If not notebook/impersonate/continue mode then ordinary chat preparing
             # add "name1&2:" to user and bot message (generation from name2
