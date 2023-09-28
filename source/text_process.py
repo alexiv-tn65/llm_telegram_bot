@@ -29,8 +29,9 @@ def generate_answer(user_in: str,
     # acquire generator lock if we can
     generator_lock.acquire(timeout=settings.generation_timeout)
 
+    # user_input preprocessing
     try:
-        # Preprocessing: add user_in to history in right order:
+        # Preprocessing: actions which return result immediately:
         if user_in[:2] in settings.permanent_change_name2_prefixes:
             # If user_in starts with perm_prefix - just replace name2
             user.name2 = user_in[2:]
@@ -49,8 +50,12 @@ def generate_answer(user_in: str,
             return_msg_action = const.MSG_SYSTEM
             generator_lock.release()
             return "Added to context: " + user_in[2:], return_msg_action
+    
+        # Preprocessing: actions which not deppends on user input:
         if bot_mode in [const.MODE_QUERY]:
             user.history = []
+    
+        # Preprocessing: add user_in/names/whitespaces to history in right order deppends on mode:
         if bot_mode in [const.MODE_NOTEBOOK]:
             # If notebook mode - append to history only user_in, no
             # additional preparing;
@@ -95,6 +100,7 @@ def generate_answer(user_in: str,
             user.user_in.append(user_in)
             user.history[-1] = user_in[1:]
             return_msg_action = const.MSG_DEL_LAST
+            generator_lock.release()
             return user.history[-1], return_msg_action
         else:
             # If not notebook/impersonate/continue mode then ordinary chat preparing
@@ -108,7 +114,7 @@ def generate_answer(user_in: str,
         generator_lock.release()
         logging.error("generate_answer (prepare text part)" + str(exception))
 
-
+    # Text processing with LLM
     try:
         # Set eos_token and stopping_strings.
         stopping_strings = generation_params["stopping_strings"].copy()
