@@ -48,3 +48,6 @@ class Config(BaseModel):
         "zh-CN": "🇨🇳",
         "ar": "🇸🇾",
     }, description="Language list for translator")
+
+
+cfg = Config()
