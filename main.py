@@ -641,8 +641,8 @@ class TelegramBotWrapper:
         greeting_tokens = -1
         try:
             history_tokens = tp.generator_script.get_tokens_count("\n".join(user.history))
-            context_tokens = tp.generator_script.get_tokens_count("\n".join(user.context))
-            greeting_tokens = tp.generator_script.get_tokens_count("\n".join(user.greeting))
+            context_tokens = tp.generator_script.get_tokens_count(user.context)
+            greeting_tokens = tp.generator_script.get_tokens_count(user.greeting)
         except Exception as e:
             logging.error("options_button tokens_count" + str(e))
 
