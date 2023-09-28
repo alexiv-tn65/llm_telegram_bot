@@ -25,7 +25,7 @@ from telegram.ext import (
 from telegram.ext import Updater
 
 try:
-    import extensions.telegram_bot.source.logic as tp
+    import extensions.telegram_bot.source.text_process as tp
     import extensions.telegram_bot.source.const as const
     import extensions.telegram_bot.source.settings as settings
     from extensions.telegram_bot.source.user import TelegramBotUser as User
