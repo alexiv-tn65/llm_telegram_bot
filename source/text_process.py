@@ -74,11 +74,13 @@ def generate_answer(text_in: str,
         if bot_mode in [const.MODE_QUERY]:
             user.history = []
 
-        # if regenerate - clear last message and repeat last text_in + name_in
+        # if regenerate:
         if text_in == const.GENERATOR_MODE_REGENERATE:
+            msg_id = user.msg_id[-1]
             text_in = user.text_in[-1]
             name_in = user.name_in[-1]
             user.truncate_last_mesage()
+            user.msg_id.append(msg_id)
 
         # Preprocessing: add user_in/names/whitespaces to history in right order depends on mode:
         if bot_mode in [const.MODE_NOTEBOOK]:
