@@ -333,8 +333,7 @@ class TelegramBotWrapper:
                 for image_path in file_list:
                     if os.path.exists(image_path):
                         with open(image_path, "rb") as image_file:
-                            context.bot.send_photo(text=answer, chat_id=chat_id, photo=image_file,
-                                                   reply_markup=self.get_chat_keyboard())
+                            context.bot.send_photo(caption=answer, chat_id=chat_id, photo=image_file)
                         os.remove(image_path)
         except Exception as e:
             logging.error("send_sd_image: " + str(e))

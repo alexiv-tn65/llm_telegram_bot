@@ -203,6 +203,8 @@ def generate_answer(text_in: str,
                     answer = answer[: -len(end)]
             user.history[-1] = user.history[-1] + " " + answer
         generator_lock.release()
+        if return_msg_action == const.MSG_SD_API:
+            user.truncate_last_mesage()
         return user.history[-1], return_msg_action
     except Exception as exception:
         logging.error("generate_answer (generator part)" + str(exception))
