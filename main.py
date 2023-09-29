@@ -348,7 +348,7 @@ class TelegramBotWrapper:
         if chat_id in self.users and len(self.users[chat_id].msg_id) > 0:
             last_msg = self.users[chat_id].msg_id[-1]
             try:
-                context.bot.editMessageReplyMarkup(chat_id=chat_id, message_id=last_msg, reply_markup=self.get_chat_keyboard())
+                context.bot.editMessageReplyMarkup(chat_id=chat_id, message_id=last_msg)
             except Exception as exception:
                 logging.error("last_message_markup_clean: " + str(exception))
 
