@@ -671,6 +671,7 @@ Language: {user.language}"""
         answer, _ = tp.generate_answer(text_in=const.GENERATOR_MODE_REGENERATE, user=user, bot_mode=cfg.bot_mode,
                                        generation_params=cfg.generation_params,
                                        name_in=self.get_user_profile_name(upd))
+        user.msg_id.append(msg.message_id)
         self.edit_message(
             text=answer,
             chat_id=chat_id,
@@ -678,7 +679,6 @@ Language: {user.language}"""
             context=context,
             upd=upd,
         )
-        user.msg_id.append(msg.message_id)
         user.save_user_history(chat_id, cfg.history_dir_path)
 
     def on_cutoff_message_button(self, upd: Update, context: CallbackContext):

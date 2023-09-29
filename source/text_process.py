@@ -73,7 +73,7 @@ def generate_answer(text_in: str,
         if bot_mode in [const.MODE_QUERY]:
             user.history = []
 
-        # if regenerate:
+        # if regenerate - msg_id the same, text and name the same. But history clearing.:
         if text_in == const.GENERATOR_MODE_REGENERATE:
             text_in = user.text_in[-1]
             name_in = user.name_in[-1]
