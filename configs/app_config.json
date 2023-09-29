@@ -2,7 +2,7 @@
 	"bot_mode": "admin",
 	"user_name_template": "",
 	"generator_script": "generator_llama_cpp",
-	"model_path": "models\\xwin-lm-13b-v0.1.Q3_K_M.gguf",
+	"model_path": "models\\xwin-lm-13b-v0.1.Q4_K_M.gguf",
 	"characters_dir_path": "characters",
 	"default_char": "Example.yaml",
 	"presets_dir_path": "presets",

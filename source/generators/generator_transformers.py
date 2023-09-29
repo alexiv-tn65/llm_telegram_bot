@@ -9,7 +9,7 @@ except ImportError:
 
 class Generator(AbstractGenerator):
     model_change_allowed = False  # if model changing allowed without stopping.
-    preset_change_allowed = True  # if preset changing allowed.
+    preset_change_allowed = True  # if preset_file changing allowed.
 
     def __init__(self, model_path, n_ctx=2048, seed=0, n_gpu_layers=0):
         self.tokenizer = AutoTokenizer.from_pretrained(model_path)
