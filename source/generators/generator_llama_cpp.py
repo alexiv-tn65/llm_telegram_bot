@@ -11,7 +11,7 @@ class Generator(AbstractGenerator):
     #  Place where path to LLM file stored
     llm: Llama = None
     model_change_allowed = False  # if model changing allowed without stopping.
-    preset_change_allowed = True  # if preset changing allowed.
+    preset_change_allowed = True  # if preset_file changing allowed.
 
     def __init__(self, model_path: str, n_ctx=4096, seed=0, n_gpu_layers=0):
         self.n_ctx = n_ctx

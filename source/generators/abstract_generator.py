@@ -16,7 +16,7 @@ class AbstractGenerator(ABC):
     @abstractmethod
     def preset_change_allowed(self) -> bool:
         """
-        If True - preset attribute without restart allowed
+        If True - preset_file changing without restart allowed
         """
         pass
 

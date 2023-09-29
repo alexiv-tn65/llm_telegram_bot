@@ -1,4 +1,5 @@
 import json
+import time
 from os.path import exists
 
 import yaml
@@ -44,8 +45,8 @@ class TelegramBotUser:
         self.name_in: list = []  # user_name history need to correct regenerate option
         self.history: list = []  # "history": [["Hi!", "Hi there!","Who are you?", "I am you assistant."]],
         self.msg_id: list = []  # "msg_id": [143, 144, 145, 146],
-        self.greeting: str = greeting # "hello" or something
-        self.last_msg_timestamp: int = 0 # last message timestamp to avoid message flood.
+        self.greeting: str = greeting  # "hello" or something
+        self.last_msg_timestamp: int = 0  # last message timestamp to avoid message flood.
 
     def truncate_last_mesage(self):
         """Truncate user history (minus one answer and user input)
@@ -145,13 +146,13 @@ class TelegramBotUser:
             return False
 
     def load_character_file(self, characters_dir_path: str, char_file: str):
-        """Load char file.
+        """Load character_file file.
         First, reset all internal user data to default
-        Second, read char file as yaml or json and converts to internal User data
+        Second, read character_file file as yaml or json and converts to internal User data
 
         Args:
             characters_dir_path: path to character dir
-            char_file: name of char file
+            char_file: name of character_file file
 
         Returns:
             True if success, otherwise False
@@ -159,7 +160,7 @@ class TelegramBotUser:
         self.reset()
         # Copy default user data. If reading will fail - return default user data
         try:
-            # Try to read char file.
+            # Try to read character_file file.
             char_file_path = Path(f"{characters_dir_path}/{char_file}")
             with open(char_file_path, "r", encoding="utf-8") as user_file:
                 if char_file.split(".")[-1] == "json":
@@ -194,7 +195,7 @@ class TelegramBotUser:
             #  add dialogue examples
             if "example_dialogue" in data:
                 self.example = f"\n{data['example_dialogue'].strip()}\n"
-            #  add char greeting
+            #  add character_file greeting
             if "char_greeting" in data:
                 self.greeting = data["char_greeting"].strip()
             if "greeting" in data:
@@ -212,7 +213,7 @@ class TelegramBotUser:
             return self
 
     def replace_context_templates(self, s: str) -> str:
-        s = s.replace("{{char}}", self.name2)
+        s = s.replace("{{character_file}}", self.name2)
         s = s.replace("{{user}}", self.name1)
         s = s.replace("<BOT>", self.name2)
         s = s.replace("<USER>", self.name1)
@@ -261,7 +262,7 @@ class TelegramBotUser:
             return False
 
     def save_user_history(self, chat_id, history_dir_path="history"):
-        """Save two history file "user + char + .json" and default user history files and return their path
+        """Save two history file "user + character_file + .json" and default user history files and return their path
 
         Args:
           chat_id: user chat_id
@@ -282,3 +283,10 @@ class TelegramBotUser:
             user_file.write(user_data)
 
         return str(user_char_file_path), str(default_user_file_path)
+
+    def check_flooding(self, flood_avoid_delay):
+        if time.time() - flood_avoid_delay > self.last_msg_timestamp:
+            self.last_msg_timestamp = time.time()
+            return True
+        else:
+            return False
