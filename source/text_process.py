@@ -40,29 +40,28 @@ def generate_answer(text_in: str,
     name_in = user.name1 if name_in == "" else name_in
     # acquire generator lock if we can
     generator_lock.acquire(timeout=cfg.generation_timeout)
-
     # user_input preprocessing
     try:
         # Preprocessing: actions which return result immediately:
-        if text_in[:2] in cfg.permanent_change_name2_prefixes:
+        if text_in.startswith(tuple(cfg.permanent_change_name2_prefixes)):
             # If user_in starts with perm_prefix - just replace name2
             user.name2 = text_in[2:]
             return_msg_action = const.MSG_SYSTEM
             generator_lock.release()
             return "New bot name: " + user.name2, return_msg_action
-        if text_in[:2] in cfg.permanent_change_name1_prefixes:
+        if text_in.startswith(tuple(cfg.permanent_change_name1_prefixes)):
             # If user_in starts with perm_prefix - just replace name2
             user.name1 = text_in[2:]
             return_msg_action = const.MSG_SYSTEM
             generator_lock.release()
             return "New user name: " + user.name1, return_msg_action
-        if text_in[:2] in cfg.permanent_add_context_prefixes:
+        if text_in.startswith(tuple(cfg.permanent_add_context_prefixes)):
             # If user_in starts with perm_prefix - just replace name2
             user.context += "\n" + text_in[2:]
             return_msg_action = const.MSG_SYSTEM
             generator_lock.release()
             return "Added to context: " + text_in[2:], return_msg_action
-        if text_in[0] in cfg.replace_prefixes:
+        if text_in.startswith(tuple(cfg.replace_prefixes)):
             # If user_in starts with replace_prefix - fully replace last
             # message
             user.history[-1] = text_in[1:]
@@ -105,10 +104,11 @@ def generate_answer(text_in: str,
             # adding "" history line to prevent bug in history sequence,
             # add "name2:" prefix for generation
             pass
-        elif text_in[0] in cfg.sd_api_prefixes:
+        elif text_in.startswith(tuple(cfg.sd_api_prefixes)):
             # If user_in starts with prefix - impersonate-like (if you try to get "impersonate view")
             # adding "" line to prevent bug in history sequence, user_in is
             # prefix for bot answer
+            user.msg_id.append(0)
             user.text_in.append(text_in)
             user.name_in.append(name_in)
             if len(text_in) == 1:
@@ -116,7 +116,7 @@ def generate_answer(text_in: str,
             else:
                 user.history_add("", cfg.sd_api_prompt_of.replace("OBJECT", text_in[1:].strip()))
             return_msg_action = const.MSG_SD_API
-        elif text_in[0] in cfg.impersonate_prefixes:
+        elif text_in.startswith(tuple(cfg.impersonate_prefixes)):
             # If user_in starts with prefix - impersonate-like (if you try to get "impersonate view")
             # adding "" line to prevent bug in history sequence, user_in is
             # prefix for bot answer
@@ -139,7 +139,7 @@ def generate_answer(text_in: str,
 
     # Text processing with LLM
     try:
-        # Set eos_token and stopping_strings.
+    # Set eos_token and stopping_strings.
         stopping_strings = generation_params["stopping_strings"].copy()
         eos_token = generation_params["eos_token"]
         if bot_mode in [const.MODE_CHAT, const.MODE_CHAT_R, const.MODE_ADMIN]:
@@ -202,8 +202,6 @@ def generate_answer(text_in: str,
                 if answer.endswith(end):
                     answer = answer[: -len(end)]
             user.history[-1] = user.history[-1] + " " + answer
-        if return_msg_action == const.MSG_SD_API:
-            user.truncate_last_mesage()
         generator_lock.release()
         return user.history[-1], return_msg_action
     except Exception as exception:

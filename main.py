@@ -463,13 +463,15 @@ class TelegramBotWrapper:
             if self.check_user_rule(chat_id=chat_id, option=const.GET_MESSAGE) is not True:
                 return False
             # Generate answer and replace "typing" message with it
-            user_text = self.prepare_text(user_text, user, "to_model")
+            if not user_text.startswith(tuple(cfg.sd_api_prefixes)):
+                user_text = self.prepare_text(user_text, user, "to_model")
             answer, system_message = tp.generate_answer(text_in=user_text, user=user, bot_mode=cfg.bot_mode,
                                                         generation_params=cfg.generation_params,
                                                         name_in=self.get_user_profile_name(upd))
             if system_message == const.MSG_SYSTEM:
                 context.bot.send_message(text=answer, chat_id=chat_id)
             elif system_message == const.MSG_SD_API:
+                user.truncate_last_mesage()
                 self.send_sd_image(upd, context, answer, user_text)
             else:
                 if system_message == const.MSG_DEL_LAST:
