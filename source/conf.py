@@ -14,7 +14,7 @@ logging.basicConfig(
 
 class Config(BaseModel):
     flood_avoid_delay: float = Field(default=10.0, description="Delay between new messages to avoid flooding (sec)")
-    generation_timeout: int = Field(default=120, description="Timeout for text generator")
+    generation_timeout: int = Field(default=300, description="Timeout for text generator")
 
     # Single shot prefixes
     replace_prefixes: List = Field(default=["!", "-"], description="Prefix to replace last message")

@@ -76,11 +76,9 @@ def generate_answer(text_in: str,
 
         # if regenerate:
         if text_in == const.GENERATOR_MODE_REGENERATE:
-            msg_id = user.msg_id[-1]
             text_in = user.text_in[-1]
             name_in = user.name_in[-1]
             user.truncate_last_mesage()
-            user.msg_id.append(msg_id)
 
         # Preprocessing: add user_in/names/whitespaces to history in right order depends on mode:
         if bot_mode in [const.MODE_NOTEBOOK]:
@@ -204,9 +202,9 @@ def generate_answer(text_in: str,
                 if answer.endswith(end):
                     answer = answer[: -len(end)]
             user.history[-1] = user.history[-1] + " " + answer
-        generator_lock.release()
         if return_msg_action == const.MSG_SD_API:
             user.truncate_last_mesage()
+        generator_lock.release()
         return user.history[-1], return_msg_action
     except Exception as exception:
         logging.error("generate_answer (generator part)" + str(exception))

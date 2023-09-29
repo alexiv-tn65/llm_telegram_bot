@@ -676,6 +676,7 @@ Language: {user.language}"""
             context=context,
             upd=upd,
         )
+        user.msg_id.append(msg.message_id)
         user.save_user_history(chat_id, cfg.history_dir_path)
 
     def on_cutoff_message_button(self, upd: Update, context: CallbackContext):
