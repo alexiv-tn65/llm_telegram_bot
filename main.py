@@ -667,6 +667,7 @@ Language: {user.language}"""
         chat_id = upd.callback_query.message.chat.id
         msg = upd.callback_query.message
         user = self.users[chat_id]
+        self.clean_last_message_markup(context, chat_id)
         # get answer and replace message text!
         answer, _ = tp.generate_answer(text_in=const.GENERATOR_MODE_REGENERATE, user=user, bot_mode=cfg.bot_mode,
                                        generation_params=cfg.generation_params,

@@ -213,7 +213,7 @@ class TelegramBotUser:
             return self
 
     def replace_context_templates(self, s: str) -> str:
-        s = s.replace("{{character_file}}", self.name2)
+        s = s.replace("{{char}}", self.name2)
         s = s.replace("{{user}}", self.name1)
         s = s.replace("<BOT>", self.name2)
         s = s.replace("<USER>", self.name1)
