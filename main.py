@@ -300,6 +300,10 @@ class TelegramBotWrapper:
         if direction not in ["to_model", "no_html"]:
             text = text.replace("#", "&#35;").replace("<", "&#60;").replace(">", "&#62;")
             original_text = original_text.replace("#", "&#35;").replace("<", "&#60;").replace(">", "&#62;")
+            if len(original_text) > 1000:
+                original_text = original_text[:1000]
+            if len(text) > 1000:
+                text = text[:1000]
             if cfg.model_lang != user.language and direction == "to_user" \
                     and cfg.translation_as_hidden_text == "on":
                 text = (
@@ -312,6 +316,8 @@ class TelegramBotWrapper:
                         + cfg.translate_html_tag[1]
                 )
             else:
+                if len(text) > 2000:
+                    text = text[:2000]
                 text = cfg.html_tag[0] + text + cfg.html_tag[1]
         return text
 
@@ -1039,7 +1045,7 @@ Language: {user.language}"""
         if self.check_user_rule(chat_id, const.BTN_REGEN):
             keyboard_raw.append(InlineKeyboardButton(text="♻Regenerate", callback_data=const.BTN_REGEN))
         if self.check_user_rule(chat_id, const.BTN_CUTOFF):
-            keyboard_raw.append(InlineKeyboardButton(text="✖Cutoff", callback_data=const.BTN_CUTOFF))
+            keyboard_raw.append(InlineKeyboardButton(text="✂️Cutoff", callback_data=const.BTN_CUTOFF))
         if self.check_user_rule(chat_id, const.BTN_OPTION):
             keyboard_raw.append(InlineKeyboardButton(text="⚙Options", callback_data=const.BTN_OPTION))
         return InlineKeyboardMarkup([keyboard_raw])

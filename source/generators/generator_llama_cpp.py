@@ -28,13 +28,16 @@ class Generator(AbstractGenerator):
         try:
             answer = self.llm.create_completion(
                 prompt=prompt,
+                max_tokens=generation_params["max_new_tokens"],
                 temperature=generation_params["temperature"],
                 top_p=generation_params["top_p"],
-                top_k=generation_params["top_k"],
-                repeat_penalty=generation_params["repetition_penalty"],
-                stop=stopping_strings,
-                max_tokens=generation_params["max_new_tokens"],
                 echo=True,
+                stop=stopping_strings,
+                repeat_penalty=generation_params["repetition_penalty"],
+                top_k=generation_params["top_k"],
+                mirostat_mode=generation_params["mirostat_mode"],
+                mirostat_tau=generation_params["mirostat_tau"],
+                mirostat_eta=generation_params["mirostat_eta"],
             )
             answer = answer["choices"][0]["text"].replace(prompt, "")
         except Exception as exception:
