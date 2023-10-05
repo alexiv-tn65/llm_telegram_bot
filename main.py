@@ -300,10 +300,10 @@ class TelegramBotWrapper:
         if direction not in ["to_model", "no_html"]:
             text = text.replace("#", "&#35;").replace("<", "&#60;").replace(">", "&#62;")
             original_text = original_text.replace("#", "&#35;").replace("<", "&#60;").replace(">", "&#62;")
-            if len(original_text) > 1000:
-                original_text = original_text[:1000]
-            if len(text) > 1000:
-                text = text[:1000]
+            if len(original_text) > 2000:
+                original_text = original_text[:2000]
+            if len(text) > 2000:
+                text = text[:2000]
             if cfg.model_lang != user.language and direction == "to_user" \
                     and cfg.translation_as_hidden_text == "on":
                 text = (
@@ -316,8 +316,8 @@ class TelegramBotWrapper:
                         + cfg.translate_html_tag[1]
                 )
             else:
-                if len(text) > 2000:
-                    text = text[:2000]
+                if len(text) > 4000:
+                    text = text[:4000]
                 text = cfg.html_tag[0] + text + cfg.html_tag[1]
         return text
 
