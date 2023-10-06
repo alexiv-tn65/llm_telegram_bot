@@ -267,7 +267,7 @@ def get_answer(
     generation_params.update({"turn_template": turn_template})
     if debug_flag:
         print("stopping_strings =", stopping_strings)
-        print(prompt, end="")
+        print(prompt)
     try:
         answer = generator.get_answer(
             prompt,

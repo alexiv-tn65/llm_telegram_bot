@@ -17,9 +17,9 @@ HOW TO INSTALL (**standalone app**):
 
 HOW TO RUN (**standalone app**):
 1) get bot token from https://t.me/BotFather 
-2) add bot token to environment (look `.env.example`) OR file `configs/telegram_token.txt`
-3) move your model file to `models/`
-4) set **model_path** to your model in `configs/app_config.json`
+2) add bot token to environment (look `.env.example`) OR file `configs\telegram_token.txt`
+3) move your model file to `models\`
+4) set **model_path** to your model in `configs\app_config.json`
 5) start `run.cmd`(windows) or `run.sh`(linux)
 
 ---------------
@@ -27,13 +27,13 @@ HOW TO INSTALL (**extension mode**):
 1) obviously, install  [oobabooga/text-generation-webui](https://github.com/oobabooga/text-generation-webui) first, add model, set all options you need
 2) run `cmd_windows.bat` or `cmd_linux.sh` to enable venv
 3) clone this repo to "text-generation-webui\extensions"  
-`git clone https://github.com/innightwolfsleep/text-generation-webui-telegram_bot text-generation-webui\extensions\telegram_bot`
+`git clone https://github.com/innightwolfsleep/text-generation-webui-telegram_bot extensions\telegram_bot`
 4) install requirements  
-`pip install -r text-generation-webui\extensions\telegram_bot\ext_requirements_ext.txt`
+`pip install -r extensions\telegram_bot\ext_requirements_ext.txt`
 
 HOW TO USE (**extension mode**):
 1) get bot token from https://t.me/BotFather 
-2) add your bot token in `text-generation-webui\extensions\telegram_bot\configs\telegram_token.txt` file or oobabooga environment
+2) add your bot token in `extensions\telegram_bot\configs\telegram_token.txt` file or oobabooga environment
 3) run server.py with `--extensions telegram_bot`
 ---------------
 (optional) if you are facing internet issue, change `proxy_url` at `app_config.json` into your own proxy. For example: `https://127.0.0.1:10808`

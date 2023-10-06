@@ -48,6 +48,9 @@ class TelegramBotUser:
         self.greeting: str = greeting  # "hello" or something
         self.last_msg_timestamp: int = 0  # last message timestamp to avoid message flood.
 
+    def __or__(self, arg):
+        return arg
+
     def truncate_last_mesage(self):
         """Truncate user history (minus one answer and user input)
 

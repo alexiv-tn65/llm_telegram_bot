@@ -25,10 +25,10 @@ class Generator(AbstractGenerator):
     ):
         if self.model_path == "like":
             time.sleep(2)
-            answer = "😀 " + prompt + " 👍"
+            answer = "👍 " + prompt.split("\n")[-1] + " 👍"
         elif self.model_path == "dislike":
             time.sleep(2)
-            answer = "🙁 " + prompt + " 👎"
+            answer = "👎 " + prompt.split("\n")[-1] + " 👎"
         else:
             answer = "generator: model_path unknown"
         return answer
