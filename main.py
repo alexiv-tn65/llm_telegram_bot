@@ -142,7 +142,7 @@ class TelegramBotWrapper:
         context.bot.send_message(
             text=send_text,
             chat_id=chat_id,
-            reply_markup=self.get_options_keyboard(chat_id, self.users[chat_id]|None),
+            reply_markup=self.get_options_keyboard(chat_id, self.users[chat_id] if chat_id in self.users else None),
             parse_mode="HTML",
         )
 
@@ -214,7 +214,7 @@ class TelegramBotWrapper:
         context.bot.send_message(
             chat_id=chat_id,
             text=send_text,
-            reply_markup=self.get_options_keyboard(chat_id, user|None),
+            reply_markup=self.get_options_keyboard(chat_id, user),
             parse_mode="HTML",
         )
 
@@ -508,7 +508,7 @@ Language: {user.language}"""
         context.bot.send_message(
             text=send_text,
             chat_id=chat_id,
-            reply_markup=self.get_options_keyboard(chat_id, user|None),
+            reply_markup=self.get_options_keyboard(chat_id, user),
             parse_mode="HTML",
         )
 
@@ -650,7 +650,7 @@ Language: {user.language}"""
         context.bot.send_message(
             chat_id=chat_id,
             text=send_text,
-            reply_markup=self.get_options_keyboard(chat_id, user|None),
+            reply_markup=self.get_options_keyboard(chat_id, user),
             parse_mode="HTML",
         )
 
@@ -679,7 +679,7 @@ Language: {user.language}"""
                     message_id=message_id,
                     text=send_text,
                     parse_mode="HTML",
-                    reply_markup=self.get_options_keyboard(chat_id, self.users[chat_id]|None),
+                    reply_markup=self.get_options_keyboard(chat_id, self.users[chat_id] if chat_id in self.users else None),
                 )
             except Exception as e:
                 logging.error("model button error: " + str(e))
@@ -688,7 +688,7 @@ Language: {user.language}"""
                     message_id=message_id,
                     text="Error during " + model_file + " loading. ⛔",
                     parse_mode="HTML",
-                    reply_markup=self.get_options_keyboard(chat_id, self.users[chat_id]|None),
+                    reply_markup=self.get_options_keyboard(chat_id, self.users[chat_id] if chat_id in self.users else None),
                 )
                 raise e
 
@@ -701,7 +701,7 @@ Language: {user.language}"""
                 context.bot.editMessageReplyMarkup(
                     chat_id=chat_id,
                     message_id=msg.message_id,
-                    reply_markup=self.get_options_keyboard(chat_id, self.users[chat_id]|None),
+                    reply_markup=self.get_options_keyboard(chat_id, self.users[chat_id] if chat_id in self.users else None),
                 )
                 return
             shift = int(option.replace(const.BTN_MODEL_LIST, ""))
@@ -734,7 +734,7 @@ Language: {user.language}"""
             message_id=message_id,
             chat_id=chat_id,
             parse_mode="HTML",
-            reply_markup=self.get_options_keyboard(chat_id, user|None),
+            reply_markup=self.get_options_keyboard(chat_id, user),
         )
 
     def keyboard_presets_button(self, upd: Update, context: CallbackContext, option: str):
@@ -745,7 +745,7 @@ Language: {user.language}"""
             context.bot.editMessageReplyMarkup(
                 chat_id=chat_id,
                 message_id=msg.message_id,
-                reply_markup=self.get_options_keyboard(chat_id, self.users[chat_id]|None),
+                reply_markup=self.get_options_keyboard(chat_id, self.users[chat_id] if chat_id in self.users else None),
             )
             return
         #  get keyboard list shift
@@ -778,7 +778,7 @@ Language: {user.language}"""
             text=send_text,
             chat_id=chat_id,
             parse_mode="HTML",
-            reply_markup=self.get_options_keyboard(chat_id, self.users[chat_id]|None),
+            reply_markup=self.get_options_keyboard(chat_id, self.users[chat_id] if chat_id in self.users else None),
         )
 
     def keyboard_characters_button(self, upd: Update, context: CallbackContext, option: str):
@@ -789,7 +789,7 @@ Language: {user.language}"""
             context.bot.editMessageReplyMarkup(
                 chat_id=chat_id,
                 message_id=msg.message_id,
-                reply_markup=self.get_options_keyboard(chat_id, self.users[chat_id]|None),
+                reply_markup=self.get_options_keyboard(chat_id, self.users[chat_id] if chat_id in self.users else None),
             )
             return
         #  get keyboard list shift
@@ -822,7 +822,7 @@ Language: {user.language}"""
             message_id=message_id,
             chat_id=chat_id,
             parse_mode="HTML",
-            reply_markup=self.get_options_keyboard(chat_id, user|None),
+            reply_markup=self.get_options_keyboard(chat_id, user),
         )
 
     def on_keyboard_language_button(self, upd: Update, context: CallbackContext, option: str):
@@ -833,7 +833,7 @@ Language: {user.language}"""
             context.bot.editMessageReplyMarkup(
                 chat_id=chat_id,
                 message_id=msg.message_id,
-                reply_markup=self.get_options_keyboard(chat_id, self.users[chat_id]|None),
+                reply_markup=self.get_options_keyboard(chat_id, self.users[chat_id] if chat_id in self.users else None),
             )
             return
         #  get keyboard list shift
@@ -867,7 +867,7 @@ Language: {user.language}"""
             message_id=message_id,
             chat_id=chat_id,
             parse_mode="HTML",
-            reply_markup=self.get_options_keyboard(chat_id, user|None),
+            reply_markup=self.get_options_keyboard(chat_id, user),
         )
 
     def on_keyboard_voice_button(self, upd: Update, context: CallbackContext, option: str):
@@ -878,7 +878,7 @@ Language: {user.language}"""
             context.bot.editMessageReplyMarkup(
                 chat_id=chat_id,
                 message_id=msg.message_id,
-                reply_markup=self.get_options_keyboard(chat_id, self.users[chat_id]|None),
+                reply_markup=self.get_options_keyboard(chat_id, self.users[chat_id] if chat_id in self.users else None),
             )
             return
         #  get keyboard list shift
@@ -909,7 +909,10 @@ Language: {user.language}"""
             language = "en"
         language_flag = cfg.language_dict[language]
         # get voice
-        voice_str = user.silero_speaker
+        if user is not None:
+            voice_str = user.silero_speaker
+        else:
+            voice_str = "None"
         if voice_str == "None":
             voice = "🔇"
         else:
