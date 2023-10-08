@@ -201,6 +201,8 @@ class TelegramBotUser:
             #  add character_file greeting
             if "char_greeting" in data:
                 self.greeting = data["char_greeting"].strip()
+            if "" in data:
+                self.greeting = data["first_mes"].strip()
             if "greeting" in data:
                 self.greeting = data["greeting"].strip()
             self.context = self.replace_context_templates(self.context)
