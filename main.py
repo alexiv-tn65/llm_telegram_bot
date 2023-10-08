@@ -420,23 +420,29 @@ class TelegramBotWrapper:
         # Send "typing" message
         typing = self.start_send_typing_status(context, chat_id)
         try:
+            # if new user - init
             if chat_id not in self.users:
                 self.init_check_user(chat_id)
-            if msg_id not in self.users[chat_id].msg_id and option in [
+            # if lost message button - clear markup
+            if len(self.users[chat_id].msg_id) == 0 and option in [
+                const.BTN_IMPERSONATE,
                 const.BTN_NEXT,
                 const.BTN_CONTINUE,
                 const.BTN_DEL_WORD,
                 const.BTN_REGEN,
                 const.BTN_CUTOFF,
             ]:
-                send_text = self.make_template_message("mem_lost", chat_id)
-                context.bot.editMessageText(
-                    text=send_text,
-                    chat_id=chat_id,
-                    message_id=msg_id,
-                    reply_markup=None,
-                    parse_mode="HTML",
-                )
+                context.bot.editMessageReplyMarkup(chat_id=chat_id, message_id=msg_id, reply_markup=None)
+            # if lost button - clear markup
+            elif msg_id != self.users[chat_id].msg_id[-1] and option in [
+                const.BTN_IMPERSONATE,
+                const.BTN_NEXT,
+                const.BTN_CONTINUE,
+                const.BTN_DEL_WORD,
+                const.BTN_REGEN,
+                const.BTN_CUTOFF,
+            ]:
+                context.bot.editMessageReplyMarkup(chat_id=chat_id, message_id=msg_id, reply_markup=None)
             else:
                 self.handle_button_option(option, chat_id, upd, context)
                 self.users[chat_id].save_user_history(chat_id, cfg.history_dir_path)
