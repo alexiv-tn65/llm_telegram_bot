@@ -1,7 +1,7 @@
+import importlib
 import logging
 from threading import Lock
 from typing import Tuple, Dict
-import importlib
 
 try:
     from extensions.telegram_bot.source.generators.abstract_generator import AbstractGenerator

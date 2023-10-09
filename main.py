@@ -41,7 +41,6 @@ except ImportError:
 
 
 class TelegramBotWrapper:
-
     # Set dummy obj for telegram updater
     updater: Updater = None
 
@@ -232,13 +231,12 @@ class TelegramBotWrapper:
             time.sleep(5)
             limit_counter -= 1
 
-
     @backoff.on_exception(
         backoff.expo,
         (urllib3.exceptions.HTTPError, urllib3.exceptions.ConnectTimeoutError, NetworkError),
         max_time=60,
     )
-    def send_sd_image(self, upd: Update, context: CallbackContext, answer:str, user_text:str):
+    def send_sd_image(self, upd: Update, context: CallbackContext, answer: str, user_text: str):
         chat_id = upd.message.chat.id
         try:
             file_list = self.SdApi.txt_to_image(answer)
@@ -318,12 +316,12 @@ class TelegramBotWrapper:
         max_time=60,
     )
     def edit_message(
-            self,
-            context: CallbackContext,
-            upd: Update,
-            chat_id: int,
-            text: str,
-            message_id: int,
+        self,
+        context: CallbackContext,
+        upd: Update,
+        chat_id: int,
+        text: str,
+        message_id: int,
     ):
         user = self.users[chat_id]
         text = utils.prepare_text(text, user, "to_user")
@@ -336,9 +334,9 @@ class TelegramBotWrapper:
                 reply_markup=self.get_chat_keyboard(),
             )
         if (
-                upd.callback_query.message.audio is not None
-                and user.silero_speaker != "None"
-                and user.silero_model_id != "None"
+            upd.callback_query.message.audio is not None
+            and user.silero_speaker != "None"
+            and user.silero_model_id != "None"
         ):
             if ":" in text:
                 audio_text = ":".join(text.split(":")[1:])
@@ -383,9 +381,13 @@ class TelegramBotWrapper:
             # Generate answer and replace "typing" message with it
             if not user_text.startswith(tuple(cfg.sd_api_prefixes)):
                 user_text = utils.prepare_text(user_text, user, "to_model")
-            answer, system_message = tp.generate_answer(text_in=user_text, user=user, bot_mode=cfg.bot_mode,
-                                                        generation_params=cfg.generation_params,
-                                                        name_in=self.get_user_profile_name(upd))
+            answer, system_message = tp.generate_answer(
+                text_in=user_text,
+                user=user,
+                bot_mode=cfg.bot_mode,
+                generation_params=cfg.generation_params,
+                name_in=self.get_user_profile_name(upd),
+            )
             if system_message == const.MSG_SYSTEM:
                 context.bot.send_message(text=answer, chat_id=chat_id)
             elif system_message == const.MSG_SD_API:
@@ -421,10 +423,9 @@ class TelegramBotWrapper:
         typing = self.start_send_typing_status(context, chat_id)
         try:
             # if new user - init
-            if chat_id not in self.users:
-                self.init_check_user(chat_id)
-            # if lost message button - clear markup
-            if len(self.users[chat_id].msg_id) == 0 and option in [
+            self.init_check_user(chat_id)
+            # if button - is chat-interactive button need to check msg consistency
+            if option in [
                 const.BTN_IMPERSONATE,
                 const.BTN_NEXT,
                 const.BTN_CONTINUE,
@@ -432,22 +433,19 @@ class TelegramBotWrapper:
                 const.BTN_REGEN,
                 const.BTN_CUTOFF,
             ]:
-                context.bot.editMessageReplyMarkup(chat_id=chat_id, message_id=msg_id, reply_markup=None)
-            # if lost button - clear markup
-            elif msg_id != self.users[chat_id].msg_id[-1] and option in [
-                const.BTN_IMPERSONATE,
-                const.BTN_NEXT,
-                const.BTN_CONTINUE,
-                const.BTN_DEL_WORD,
-                const.BTN_REGEN,
-                const.BTN_CUTOFF,
-            ]:
-                context.bot.editMessageReplyMarkup(chat_id=chat_id, message_id=msg_id, reply_markup=None)
-            else:
-                self.handle_button_option(option, chat_id, upd, context)
-                self.users[chat_id].save_user_history(chat_id, cfg.history_dir_path)
+                # if lost message button - clear markup and return
+                if len(self.users[chat_id].msg_id) == 0:
+                    context.bot.editMessageReplyMarkup(chat_id=chat_id, message_id=msg_id, reply_markup=None)
+                    return
+                else:
+                    # if msg list not empty but  lost button - clear markup and return
+                    if msg_id != self.users[chat_id].msg_id[-1]:
+                        context.bot.editMessageReplyMarkup(chat_id=chat_id, message_id=msg_id, reply_markup=None)
+                        return
+            self.handle_button_option(option, chat_id, upd, context)
+            self.users[chat_id].save_user_history(chat_id, cfg.history_dir_path)
         except Exception as e:
-            logging.error("thread_push_button " + str(e))
+            logging.error("thread_push_button " + str(e), e.args)
         finally:
             typing.clear()
 
@@ -528,9 +526,13 @@ Language: {user.language}"""
         chat_id = upd.callback_query.message.chat.id
         user = self.users[chat_id]
         self.clean_last_message_markup(context, chat_id)
-        answer, _ = tp.generate_answer(text_in=const.GENERATOR_MODE_IMPERSONATE, user=user, bot_mode=cfg.bot_mode,
-                                       generation_params=cfg.generation_params,
-                                       name_in=self.get_user_profile_name(upd))
+        answer, _ = tp.generate_answer(
+            text_in=const.GENERATOR_MODE_IMPERSONATE,
+            user=user,
+            bot_mode=cfg.bot_mode,
+            generation_params=cfg.generation_params,
+            name_in=self.get_user_profile_name(upd),
+        )
         message = self.send_message(text=answer, chat_id=chat_id, context=context)
         user.msg_id.append(message.message_id)
         user.save_user_history(chat_id, cfg.history_dir_path)
@@ -539,9 +541,13 @@ Language: {user.language}"""
         chat_id = upd.callback_query.message.chat.id
         user = self.users[chat_id]
         self.clean_last_message_markup(context, chat_id)
-        answer, _ = tp.generate_answer(text_in=const.GENERATOR_MODE_NEXT, user=user, bot_mode=cfg.bot_mode,
-                                       generation_params=cfg.generation_params,
-                                       name_in=self.get_user_profile_name(upd))
+        answer, _ = tp.generate_answer(
+            text_in=const.GENERATOR_MODE_NEXT,
+            user=user,
+            bot_mode=cfg.bot_mode,
+            generation_params=cfg.generation_params,
+            name_in=self.get_user_profile_name(upd),
+        )
         message = self.send_message(text=answer, chat_id=chat_id, context=context)
         user.msg_id.append(message.message_id)
         user.save_user_history(chat_id, cfg.history_dir_path)
@@ -551,9 +557,13 @@ Language: {user.language}"""
         message = upd.callback_query.message
         user = self.users[chat_id]
         # get answer and replace message text!
-        answer, _ = tp.generate_answer(text_in=const.GENERATOR_MODE_CONTINUE, user=user, bot_mode=cfg.bot_mode,
-                                       generation_params=cfg.generation_params,
-                                       name_in=self.get_user_profile_name(upd))
+        answer, _ = tp.generate_answer(
+            text_in=const.GENERATOR_MODE_CONTINUE,
+            user=user,
+            bot_mode=cfg.bot_mode,
+            generation_params=cfg.generation_params,
+            name_in=self.get_user_profile_name(upd),
+        )
         self.edit_message(
             text=answer,
             chat_id=chat_id,
@@ -593,9 +603,13 @@ Language: {user.language}"""
         user = self.users[chat_id]
         self.clean_last_message_markup(context, chat_id)
         # get answer and replace message text!
-        answer, _ = tp.generate_answer(text_in=const.GENERATOR_MODE_REGENERATE, user=user, bot_mode=cfg.bot_mode,
-                                       generation_params=cfg.generation_params,
-                                       name_in=self.get_user_profile_name(upd))
+        answer, _ = tp.generate_answer(
+            text_in=const.GENERATOR_MODE_REGENERATE,
+            user=user,
+            bot_mode=cfg.bot_mode,
+            generation_params=cfg.generation_params,
+            name_in=self.get_user_profile_name(upd),
+        )
         user.msg_id.append(msg.message_id)
         self.edit_message(
             text=answer,
@@ -685,7 +699,9 @@ Language: {user.language}"""
                     message_id=message_id,
                     text=send_text,
                     parse_mode="HTML",
-                    reply_markup=self.get_options_keyboard(chat_id, self.users[chat_id] if chat_id in self.users else None),
+                    reply_markup=self.get_options_keyboard(
+                        chat_id, self.users[chat_id] if chat_id in self.users else None
+                    ),
                 )
             except Exception as e:
                 logging.error("model button error: " + str(e))
@@ -694,7 +710,9 @@ Language: {user.language}"""
                     message_id=message_id,
                     text="Error during " + model_file + " loading. ⛔",
                     parse_mode="HTML",
-                    reply_markup=self.get_options_keyboard(chat_id, self.users[chat_id] if chat_id in self.users else None),
+                    reply_markup=self.get_options_keyboard(
+                        chat_id, self.users[chat_id] if chat_id in self.users else None
+                    ),
                 )
                 raise e
 
@@ -707,7 +725,9 @@ Language: {user.language}"""
                 context.bot.editMessageReplyMarkup(
                     chat_id=chat_id,
                     message_id=msg.message_id,
-                    reply_markup=self.get_options_keyboard(chat_id, self.users[chat_id] if chat_id in self.users else None),
+                    reply_markup=self.get_options_keyboard(
+                        chat_id, self.users[chat_id] if chat_id in self.users else None
+                    ),
                 )
                 return
             shift = int(option.replace(const.BTN_MODEL_LIST, ""))
@@ -950,7 +970,6 @@ Language: {user.language}"""
             keyboard_raw.append(InlineKeyboardButton(text="❌Close", callback_data=const.BTN_DELETE))
         return InlineKeyboardMarkup([keyboard_raw])
 
-
     @staticmethod
     def get_chat_keyboard(chat_id=0):
         keyboard_raw = []
@@ -970,15 +989,14 @@ Language: {user.language}"""
             keyboard_raw.append(InlineKeyboardButton(text="⚙Options", callback_data=const.BTN_OPTION))
         return InlineKeyboardMarkup([keyboard_raw])
 
-
     @staticmethod
     def get_switch_keyboard(
-            opt_list: list,
-            shift: int,
-            data_list: str,
-            data_load: str,
-            keyboard_rows=6,
-            keyboard_colum=2,
+        opt_list: list,
+        shift: int,
+        data_list: str,
+        data_load: str,
+        keyboard_rows=6,
+        keyboard_colum=2,
     ):
         # find shift
         opt_list_length = len(opt_list)

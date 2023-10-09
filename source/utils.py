@@ -1,11 +1,10 @@
-import os
 import json
 import logging
-
+import os
 from os import listdir
 from re import sub
-from deep_translator import GoogleTranslator as Translator
 
+from deep_translator import GoogleTranslator as Translator
 
 try:
     import extensions.telegram_bot.source.const as const
@@ -15,7 +14,6 @@ except ImportError:
     import source.const as const
     from source.conf import cfg
     from source.user import TelegramBotUser as User
-
 
 
 def prepare_text(original_text: str, user: User, direction="to_user"):
@@ -38,16 +36,15 @@ def prepare_text(original_text: str, user: User, direction="to_user"):
             original_text = original_text[:2000]
         if len(text) > 2000:
             text = text[:2000]
-        if cfg.model_lang != user.language and direction == "to_user" \
-                and cfg.translation_as_hidden_text == "on":
+        if cfg.model_lang != user.language and direction == "to_user" and cfg.translation_as_hidden_text == "on":
             text = (
-                    cfg.html_tag[0]
-                    + original_text
-                    + cfg.html_tag[1]
-                    + "\n"
-                    + cfg.translate_html_tag[0]
-                    + text
-                    + cfg.translate_html_tag[1]
+                cfg.html_tag[0]
+                + original_text
+                + cfg.html_tag[1]
+                + "\n"
+                + cfg.translate_html_tag[0]
+                + text
+                + cfg.translate_html_tag[1]
             )
         else:
             if len(text) > 4000:
@@ -85,6 +82,7 @@ def check_user_permission(chat_id):
         return True
     else:
         return False
+
 
 def check_user_rule(chat_id, option):
     if os.path.exists(cfg.user_rules_file_path):

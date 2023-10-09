@@ -1,8 +1,9 @@
-from pydantic import BaseModel, Field
-from typing import List, Dict
+import json
 import logging
 import os
-import json
+from typing import List, Dict
+
+from pydantic import BaseModel, Field
 
 # Set logging
 logging.basicConfig(

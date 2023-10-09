@@ -1,9 +1,9 @@
 import json
 import time
 from os.path import exists
+from pathlib import Path
 
 import yaml
-from pathlib import Path
 
 
 class TelegramBotUser:
