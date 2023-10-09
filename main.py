@@ -445,7 +445,7 @@ class TelegramBotWrapper:
             self.handle_button_option(option, chat_id, upd, context)
             self.users[chat_id].save_user_history(chat_id, cfg.history_dir_path)
         except Exception as e:
-            logging.error("thread_push_button " + str(e), e.args)
+            logging.error("thread_push_button " + str(e) + str(e.args))
         finally:
             typing.clear()
 
@@ -494,16 +494,6 @@ class TelegramBotWrapper:
     def show_options_button(self, upd: Update, context: CallbackContext):
         chat_id = upd.callback_query.message.chat.id
         user = self.users[chat_id]
-        history_tokens = -1
-        context_tokens = -1
-        greeting_tokens = -1
-        try:
-            history_tokens = tp.get_tokens_count("\n".join(user.history))
-            context_tokens = tp.get_tokens_count(user.context)
-            greeting_tokens = tp.get_tokens_count(user.greeting)
-        except Exception as e:
-            logging.error("options_button tokens_count" + str(e))
-
         send_text = self.get_conversation_info(user)
         context.bot.send_message(
             text=send_text,
@@ -865,11 +855,26 @@ class TelegramBotWrapper:
 
     @staticmethod
     def get_conversation_info(user: User):
+        history_tokens = -1
+        context_tokens = -1
+        greeting_tokens = -1
+        conversation_tokens = -1
+        try:
+            history_tokens = tp.get_tokens_count("\n".join(user.history))
+            context_tokens = tp.get_tokens_count(user.context)
+            greeting_tokens = tp.get_tokens_count(user.greeting)
+            conversation_tokens = history_tokens + context_tokens + greeting_tokens
+        except Exception as e:
+            logging.error("options_button tokens_count" + str(e))
+
         max_token_param = "truncation_length"
         max_tokens = cfg.generation_params[max_token_param] if max_token_param in cfg.generation_params else "???"
-        return (f"{user.name2}"
-                f"Conversation length{str(len(user.history))}/{max_tokens} messages."
-                f"Voice: {user.silero_speaker} (NEW)"
+        return (f"{user.name2}\n"
+                f"Conversation length {str(conversation_tokens)}/{max_tokens} tokens.\n"
+                f"(context {(str(context_tokens))}, "
+                f"greeting {(str(greeting_tokens))}, "
+                f"messages {(str(history_tokens))})\n"
+                f"Voice: {user.silero_speaker}\n"
                 f"Language: {user.language}")
 
     def on_load_voice_button(self, upd: Update, context: CallbackContext, option: str):
@@ -1016,11 +1021,13 @@ class TelegramBotWrapper:
             )
             i += 1
         # add switch buttons
+        ordinary_shift = keyboard_length - 1
+        improved_shift = int(opt_list_length/8) if opt_list_length/(keyboard_length * 3) > 8 else keyboard_length * 3
         begin_shift = 0
-        l_shift = shift - keyboard_length
-        l_shift3 = shift - keyboard_length * 3
-        r_shift = shift + keyboard_length
-        r_shift3 = shift + keyboard_length * 3
+        l_shift = shift - ordinary_shift
+        l_shift3 = shift - improved_shift
+        r_shift = shift + ordinary_shift
+        r_shift3 = shift + improved_shift
         end_shift = opt_list_length - keyboard_length
         switch_buttons = [
             InlineKeyboardButton(text="⏮", callback_data=data_list + str(begin_shift)),
