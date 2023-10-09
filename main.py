@@ -504,11 +504,7 @@ class TelegramBotWrapper:
         except Exception as e:
             logging.error("options_button tokens_count" + str(e))
 
-        send_text = f"""{user.name2} ({user.char_file}),
-Conversation length: {str(len(user.history))} messages, ({history_tokens} tokens).
-Context:{context_tokens}, greeting:{greeting_tokens} tokens.
-Voice: {user.silero_speaker}
-Language: {user.language}"""
+        send_text = self.get_conversation_info(user)
         context.bot.send_message(
             text=send_text,
             chat_id=chat_id,
@@ -749,11 +745,7 @@ Language: {user.language}"""
         cfg.preset_file = utils.parse_presets_dir()[preset_char_num]
         cfg.load_preset(preset_file=cfg.preset_file)
         user = self.users[chat_id]
-        send_text = f"""{user.name2},
-        Conversation length{str(len(user.history))} messages.
-        Voice: {user.silero_speaker}
-        Language: {user.language}
-        New preset: {cfg.preset_file}"""
+        send_text = self.get_conversation_info(user)
         message_id = upd.callback_query.message.message_id
         context.bot.editMessageText(
             text=send_text,
@@ -838,10 +830,7 @@ Language: {user.language}"""
         lang_num = int(option.replace(const.BTN_LANG_LOAD, ""))
         language = list(cfg.language_dict.keys())[lang_num]
         self.users[chat_id].language = language
-        send_text = f"""{user.name2},
-        Conversation length{str(len(user.history))} messages.
-        Voice: {user.silero_speaker}
-        Language: {user.language} (NEW)"""
+        send_text = self.get_conversation_info(user)
         message_id = upd.callback_query.message.message_id
         context.bot.editMessageText(
             text=send_text,
@@ -874,6 +863,15 @@ Language: {user.language}"""
         )
         context.bot.editMessageReplyMarkup(chat_id=chat_id, message_id=msg.message_id, reply_markup=lang_buttons)
 
+    @staticmethod
+    def get_conversation_info(user: User):
+        max_token_param = "truncation_length"
+        max_tokens = cfg.generation_params[max_token_param] if max_token_param in cfg.generation_params else "???"
+        return (f"{user.name2}"
+                f"Conversation length{str(len(user.history))}/{max_tokens} messages."
+                f"Voice: {user.silero_speaker} (NEW)"
+                f"Language: {user.language}")
+
     def on_load_voice_button(self, upd: Update, context: CallbackContext, option: str):
         chat_id = upd.callback_query.message.chat.id
         user = self.users[chat_id]
@@ -883,10 +881,7 @@ Language: {user.language}"""
         voice_num = int(option.replace(const.BTN_VOICE_LOAD, ""))
         user.silero_speaker = voice_dict[voice_num]
         user.silero_model_id = Silero.voices[user.language]["model"]
-        send_text = f"""{user.name2},
-        Conversation length{str(len(user.history))} messages.
-        Voice: {user.silero_speaker} (NEW)
-        Language: {user.language}"""
+        send_text = self.get_conversation_info(user)
         message_id = upd.callback_query.message.message_id
         context.bot.editMessageText(
             text=send_text,
