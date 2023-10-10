@@ -22,6 +22,7 @@ from telegram.ext import (
 )
 from telegram.ext import Updater
 
+
 try:
     import extensions.telegram_bot.source.text_process as tp
     import extensions.telegram_bot.source.const as const
@@ -136,7 +137,7 @@ class TelegramBotWrapper:
         chat_id = upd.effective_chat.id
         if not utils.check_user_permission(chat_id):
             return False
-        self.init_check_user(chat_id)
+        utils.init_check_user(self.users, chat_id)
         send_text = self.make_template_message("char_loaded", chat_id)
         context.bot.send_message(
             text=send_text,
@@ -184,29 +185,18 @@ class TelegramBotWrapper:
     # =============================================================================
     # Work with history! Init/load/save functions
 
-    def init_check_user(self, chat_id):
-        if chat_id not in self.users:
-            # Load default
-            self.users.update({chat_id: User()})
-            self.users[chat_id].load_character_file(
-                characters_dir_path=cfg.characters_dir_path,
-                char_file=cfg.character_file,
-            )
-            self.users[chat_id].load_user_history(f"{cfg.history_dir_path}/{str(chat_id)}.json")
-            self.users[chat_id].find_and_load_user_char_history(chat_id, cfg.history_dir_path)
-
     def thread_get_json_document(self, upd: Update, context: CallbackContext):
         chat_id = upd.message.chat.id
         user = self.users[chat_id]
         if not utils.check_user_permission(chat_id):
             return False
-        self.init_check_user(chat_id)
+        utils.init_check_user(self.users, chat_id)
         default_user_file_path = str(Path(f"{cfg.history_dir_path}/{str(chat_id)}.json"))
         with open(default_user_file_path, "wb") as f:
             context.bot.get_file(upd.message.document.file_id).download(out=f)
         user.load_user_history(default_user_file_path)
         if len(user.history) > 0:
-            last_message = user.history[-1]
+            last_message = user.history[-1][1]
         else:
             last_message = "<no message in history>"
         send_text = self.make_template_message("hist_loaded", chat_id, last_message)
@@ -367,7 +357,7 @@ class TelegramBotWrapper:
         # Extract user input and chat ID
         user_text = upd.message.text
         chat_id = upd.message.chat.id
-        self.init_check_user(chat_id)
+        utils.init_check_user(self.users, chat_id)
         user = self.users[chat_id]
         if not utils.check_user_permission(chat_id):
             return False
@@ -381,7 +371,7 @@ class TelegramBotWrapper:
             # Generate answer and replace "typing" message with it
             if not user_text.startswith(tuple(cfg.sd_api_prefixes)):
                 user_text = utils.prepare_text(user_text, user, "to_model")
-            answer, system_message = tp.generate_answer(
+            answer, system_message = tp.get_answer(
                 text_in=user_text,
                 user=user,
                 bot_mode=cfg.bot_mode,
@@ -391,7 +381,7 @@ class TelegramBotWrapper:
             if system_message == const.MSG_SYSTEM:
                 context.bot.send_message(text=answer, chat_id=chat_id)
             elif system_message == const.MSG_SD_API:
-                user.truncate_last_mesage()
+                user.truncate_last_message()
                 self.send_sd_image(upd, context, answer, user_text)
             else:
                 if system_message == const.MSG_DEL_LAST:
@@ -423,7 +413,7 @@ class TelegramBotWrapper:
         typing = self.start_send_typing_status(context, chat_id)
         try:
             # if new user - init
-            self.init_check_user(chat_id)
+            utils.init_check_user(self.users, chat_id)
             # if button - is chat-interactive button need to check msg consistency
             if option in [
                 const.BTN_IMPERSONATE,
@@ -512,7 +502,7 @@ class TelegramBotWrapper:
         chat_id = upd.callback_query.message.chat.id
         user = self.users[chat_id]
         self.clean_last_message_markup(context, chat_id)
-        answer, _ = tp.generate_answer(
+        answer, _ = tp.get_answer(
             text_in=const.GENERATOR_MODE_IMPERSONATE,
             user=user,
             bot_mode=cfg.bot_mode,
@@ -527,7 +517,7 @@ class TelegramBotWrapper:
         chat_id = upd.callback_query.message.chat.id
         user = self.users[chat_id]
         self.clean_last_message_markup(context, chat_id)
-        answer, _ = tp.generate_answer(
+        answer, _ = tp.get_answer(
             text_in=const.GENERATOR_MODE_NEXT,
             user=user,
             bot_mode=cfg.bot_mode,
@@ -543,7 +533,7 @@ class TelegramBotWrapper:
         message = upd.callback_query.message
         user = self.users[chat_id]
         # get answer and replace message text!
-        answer, _ = tp.generate_answer(
+        answer, _ = tp.get_answer(
             text_in=const.GENERATOR_MODE_CONTINUE,
             user=user,
             bot_mode=cfg.bot_mode,
@@ -565,7 +555,7 @@ class TelegramBotWrapper:
         user = self.users[chat_id]
 
         # get and change last message
-        last_message = user.history[-1]
+        last_message = user.history[-1][1]
         last_word = split(r"\n+| +", last_message)[-1]
         if len(last_word) == 0:
             last_word = " "
@@ -589,7 +579,7 @@ class TelegramBotWrapper:
         user = self.users[chat_id]
         self.clean_last_message_markup(context, chat_id)
         # get answer and replace message text!
-        answer, _ = tp.generate_answer(
+        answer, _ = tp.get_answer(
             text_in=const.GENERATOR_MODE_REGENERATE,
             user=user,
             bot_mode=cfg.bot_mode,
@@ -613,7 +603,7 @@ class TelegramBotWrapper:
         last_msg_id = user.msg_id[-1]
         context.bot.deleteMessage(chat_id=chat_id, message_id=last_msg_id)
         # Remove last message and bot answer from history
-        user.truncate_last_mesage()
+        user.truncate_last_message()
         # If there is previous message - add buttons to previous message
         if user.msg_id:
             message_id = user.msg_id[-1]
@@ -764,7 +754,7 @@ class TelegramBotWrapper:
             shift=shift,
             data_list=const.BTN_PRESET_LIST,
             data_load=const.BTN_PRESET_LOAD,
-            keyboard_colum=3,
+            keyboard_column=3,
         )
         context.bot.editMessageReplyMarkup(chat_id=chat_id, message_id=msg.message_id, reply_markup=characters_buttons)
 
@@ -773,13 +763,13 @@ class TelegramBotWrapper:
         char_num = int(option.replace(const.BTN_CHAR_LOAD, ""))
         char_list = utils.parse_characters_dir()
         self.clean_last_message_markup(context, chat_id)
-        self.init_check_user(chat_id)
+        utils.init_check_user(self.users, chat_id)
         char_file = char_list[char_num]
         self.users[chat_id].load_character_file(characters_dir_path=cfg.characters_dir_path, char_file=char_file)
         #  If there was conversation with this character_file - load history
         self.users[chat_id].find_and_load_user_char_history(chat_id, cfg.history_dir_path)
         if len(self.users[chat_id].history) > 0:
-            send_text = self.make_template_message("hist_loaded", chat_id, self.users[chat_id].history[-1])
+            send_text = self.make_template_message("hist_loaded", chat_id, self.users[chat_id].history[-1][1])
         else:
             send_text = self.make_template_message("char_loaded", chat_id)
         context.bot.send_message(
@@ -849,7 +839,7 @@ class TelegramBotWrapper:
             shift=shift,
             data_list=const.BTN_LANG_LIST,
             data_load=const.BTN_LANG_LOAD,
-            keyboard_colum=4,
+            keyboard_column=4,
         )
         context.bot.editMessageReplyMarkup(chat_id=chat_id, message_id=msg.message_id, reply_markup=lang_buttons)
 
@@ -860,7 +850,7 @@ class TelegramBotWrapper:
         greeting_tokens = -1
         conversation_tokens = -1
         try:
-            history_tokens = tp.get_tokens_count("\n".join(user.history))
+            history_tokens = tp.get_tokens_count("\n".join(user.history_as_str()))
             context_tokens = tp.get_tokens_count(user.context)
             greeting_tokens = tp.get_tokens_count(user.greeting)
             conversation_tokens = history_tokens + context_tokens + greeting_tokens
@@ -919,7 +909,7 @@ class TelegramBotWrapper:
             shift=shift,
             data_list=const.BTN_VOICE_LIST,
             data_load=const.BTN_VOICE_LOAD,
-            keyboard_colum=4,
+            keyboard_column=4,
         )
         context.bot.editMessageReplyMarkup(chat_id=chat_id, message_id=msg.message_id, reply_markup=voice_buttons)
 
@@ -996,11 +986,11 @@ class TelegramBotWrapper:
         data_list: str,
         data_load: str,
         keyboard_rows=6,
-        keyboard_colum=2,
+        keyboard_column=2,
     ):
         # find shift
         opt_list_length = len(opt_list)
-        keyboard_length = keyboard_rows * keyboard_colum
+        keyboard_length = keyboard_rows * keyboard_column
         if shift >= opt_list_length - keyboard_length:
             shift = opt_list_length - keyboard_length
         if shift < 0:
@@ -1014,7 +1004,7 @@ class TelegramBotWrapper:
             if column == 0:
                 characters_buttons.append([])
             column += 1
-            if column >= keyboard_colum:
+            if column >= keyboard_column:
                 column = 0
             characters_buttons[-1].append(
                 InlineKeyboardButton(text=f"{opt_list[i]}", callback_data=f"{data_load}{str(i)}")

@@ -19,7 +19,7 @@ class Generator(AbstractGenerator):
         self.n_gpu_layers = n_gpu_layers
         self.llm = Llama(model_path=model_path, n_ctx=n_ctx, seed=seed, n_gpu_layers=n_gpu_layers)
 
-    def get_answer(
+    def generate_answer(
         self, prompt, generation_params, eos_token, stopping_strings, default_answer: str, turn_template="", **kwargs
     ):
         # Preparing, add stopping_strings

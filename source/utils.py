@@ -3,6 +3,7 @@ import logging
 import os
 from os import listdir
 from re import sub
+from typing import Dict
 
 from deep_translator import GoogleTranslator as Translator
 
@@ -13,7 +14,7 @@ try:
 except ImportError:
     import source.const as const
     from source.conf import cfg
-    from source.user import TelegramBotUser as User
+    from source.user import TelegramBotUser as User, TelegramBotUser
 
 
 def prepare_text(original_text: str, user: User, direction="to_user"):
@@ -102,3 +103,16 @@ def check_user_rule(chat_id, option):
         return bool(user_rules[option][const.MODE_ADMIN])
     else:
         return bool(user_rules[option][cfg.bot_mode])
+
+
+def init_check_user(users: Dict[int, User], chat_id):
+    if chat_id not in users:
+        # Load default
+        users.update({chat_id: User()})
+        users[chat_id].user_id = chat_id
+        users[chat_id].load_character_file(
+            characters_dir_path=cfg.characters_dir_path,
+            char_file=cfg.character_file,
+        )
+        users[chat_id].load_user_history(f"{cfg.history_dir_path}/{str(chat_id)}.json")
+        users[chat_id].find_and_load_user_char_history(chat_id, cfg.history_dir_path)
