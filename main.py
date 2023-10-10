@@ -850,7 +850,7 @@ class TelegramBotWrapper:
         greeting_tokens = -1
         conversation_tokens = -1
         try:
-            history_tokens = tp.get_tokens_count("\n".join(user.history_as_str()))
+            history_tokens = tp.get_tokens_count(user.history_as_str())
             context_tokens = tp.get_tokens_count(user.context)
             greeting_tokens = tp.get_tokens_count(user.greeting)
             conversation_tokens = history_tokens + context_tokens + greeting_tokens

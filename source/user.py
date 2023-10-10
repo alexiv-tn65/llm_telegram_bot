@@ -63,8 +63,8 @@ class TelegramBotUser:
         """
         msg_id = self.msg_id.pop()
         user_in = self.text_in.pop()
-        self.name_in = self.name_in.pop()
-        self.history = self.history.pop()
+        self.name_in.pop()
+        self.history.pop()
         return user_in, msg_id
 
     def history_append(self, message="", answer=""):
@@ -82,17 +82,14 @@ class TelegramBotUser:
         return history
 
     def history_as_list(self) -> list:
-        print(self.history)
         history_list = []
         if len(self.history) == 0:
             return history_list
         for s in self.history:
-            history_item = ""
             if len(s[0]) > 0:
-                history_item += s[0]
+                history_list.append(s[0])
             if len(s[-1]) > 0:
-                history_item += s[-1]
-            history_list.append(history_item)
+                history_list.append(s[1])
         return history_list
 
     def change_last_message(self, text_in=None, name_in=None, history_message=None, history_answer=None, msg_id=None):
