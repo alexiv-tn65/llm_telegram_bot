@@ -4,7 +4,6 @@ import logging
 import os.path
 import time
 from pathlib import Path
-from re import split
 from threading import Thread, Event
 from typing import Dict
 
@@ -82,7 +81,8 @@ class TelegramBotWrapper:
     def run_telegram_bot(self, bot_token="", token_file_name=""):
         """
         Start the Telegram bot.
-        :param bot_token: (str) The Telegram bot token. If not provided, try to read it from `token_file_name`.
+        :param bot_token: (str) The Telegram bot tokens separated by ','
+                                If not provided, try to read it from `token_file_name`.
         :param token_file_name: (str) The name of the file containing the bot token. Default is `None`.
         :return: None
         """
@@ -256,7 +256,7 @@ class TelegramBotWrapper:
             try:
                 context.bot.editMessageReplyMarkup(chat_id=chat_id, message_id=last_msg)
             except Exception as exception:
-                logging.error("last_message_markup_clean: " + str(exception))
+                logging.info("last_message_markup_clean: " + str(exception))
 
     @backoff.on_exception(
         backoff.expo,
@@ -553,25 +553,22 @@ class TelegramBotWrapper:
     def on_delete_word_button(self, upd: Update, context: CallbackContext):
         chat_id = upd.callback_query.message.chat.id
         user = self.users[chat_id]
-
-        # get and change last message
-        last_message = user.history[-1][1]
-        last_word = split(r"\n+| +", last_message)[-1]
-        if len(last_word) == 0:
-            last_word = " "
-        new_last_message = last_message[: -(len(last_word))]
-        new_last_message = new_last_message.strip()
-        # If there is previous message - add buttons to previous message
-        if user.msg_id:
+        answer, return_msg_action = tp.get_answer(
+            text_in=const.GENERATOR_MODE_DEL_WORD,
+            user=user,
+            bot_mode=cfg.bot_mode,
+            generation_params=cfg.generation_params,
+            name_in=self.get_user_profile_name(upd),
+        )
+        if return_msg_action != const.MSG_NOTHING_TO_DO:
             self.edit_message(
-                text=new_last_message,
+                text=answer,
                 chat_id=chat_id,
                 message_id=user.msg_id[-1],
                 context=context,
                 upd=upd,
             )
-        user.change_last_message(history_answer=new_last_message)
-        user.save_user_history(chat_id, cfg.history_dir_path)
+            user.save_user_history(chat_id, cfg.history_dir_path)
 
     def on_regenerate_message_button(self, upd: Update, context: CallbackContext):
         chat_id = upd.callback_query.message.chat.id
@@ -586,7 +583,6 @@ class TelegramBotWrapper:
             generation_params=cfg.generation_params,
             name_in=self.get_user_profile_name(upd),
         )
-        user.msg_id.append(msg.message_id)
         self.edit_message(
             text=answer,
             chat_id=chat_id,
@@ -970,7 +966,7 @@ class TelegramBotWrapper:
         if utils.check_user_rule(chat_id, const.BTN_CONTINUE):
             keyboard_raw.append(InlineKeyboardButton(text="➡Continue", callback_data=const.BTN_CONTINUE))
         if utils.check_user_rule(chat_id, const.BTN_DEL_WORD):
-            keyboard_raw.append(InlineKeyboardButton(text="⬅Del word", callback_data=const.BTN_DEL_WORD))
+            keyboard_raw.append(InlineKeyboardButton(text="⬅Del sentence", callback_data=const.BTN_DEL_WORD))
         if utils.check_user_rule(chat_id, const.BTN_REGEN):
             keyboard_raw.append(InlineKeyboardButton(text="♻Regenerate", callback_data=const.BTN_REGEN))
         if utils.check_user_rule(chat_id, const.BTN_CUTOFF):

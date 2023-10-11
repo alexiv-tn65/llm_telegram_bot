@@ -56,7 +56,7 @@ FEATURES:
 - save/load history in chat by downloading/forwarding to chat .json file
 - integrated auto-translate (you can set model/user language parameter) 
 - voice generating ([silero](https://github.com/snakers4/silero-models)), en and ru variants
-- translation_as_hidden_text option in .cfg - if you want to learn english with bot)))
+- translation_as_hidden_text option in .cfg - if you want to learn english with bot
 - telegram_users.txt - list of permitted users (if empty - permit for all)
 - antiflood - one message per 15 sec from one user
 - improved group chatting mode

@@ -2,6 +2,7 @@ import importlib
 import logging
 from threading import Lock
 from typing import Tuple, Dict
+from re import split
 
 try:
     from extensions.telegram_bot.source.generators.abstract_generator import AbstractGenerator
@@ -67,6 +68,21 @@ def get_answer(text_in: str,
             return_msg_action = const.MSG_DEL_LAST
             generator_lock.release()
             return user.history[-1][1], return_msg_action
+        if text_in == const.GENERATOR_MODE_DEL_WORD:
+            # If user_in starts with replace_prefix - fully replace last message
+            # get and change last message
+            last_message = user.history[-1][1]
+            last_word = split(r"\n+|\. +|: +|! +|\? +", last_message)[-1]
+            if len(last_word) == 0 and len(last_message) > 0:
+                last_word = " "
+            new_last_message = last_message[: -(len(last_word))]
+            new_last_message = new_last_message.strip()
+            if new_last_message.strip() == last_message.strip() or len(new_last_message)==0:
+                return_msg_action = const.MSG_NOTHING_TO_DO
+            else:
+                user.change_last_message(history_answer=new_last_message)
+            generator_lock.release()
+            return user.history[-1][1], return_msg_action
 
         # Preprocessing: actions which not depends on user input:
         if bot_mode in [const.MODE_QUERY]:
@@ -76,7 +92,9 @@ def get_answer(text_in: str,
         if text_in == const.GENERATOR_MODE_REGENERATE:
             text_in = user.text_in[-1]
             name_in = user.name_in[-1]
+            last_msg_id = user.msg_id[-1]
             user.truncate_last_message()
+            user.msg_id.append(last_msg_id)
 
         # Preprocessing: add user_in/names/whitespaces to history in right order depends on mode:
         if bot_mode in [const.MODE_NOTEBOOK]:
