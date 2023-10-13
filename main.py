@@ -5,7 +5,7 @@ import os.path
 import time
 from pathlib import Path
 from threading import Thread, Event
-from typing import Dict
+from typing import Dict, List
 
 import backoff
 import urllib3
@@ -42,7 +42,7 @@ except ImportError:
 
 class TelegramBotWrapper:
     # Set dummy obj for telegram updater
-    updater: Updater = None
+    updaters: List[Updater] = []
 
     # dict of User data dicts, here stored all users' session info.
     users: Dict[int, User] = {}
@@ -93,28 +93,27 @@ class TelegramBotWrapper:
             token_file_name = token_file_name or cfg.token_file_path
             with open(token_file_name, "r", encoding="utf-8") as f:
                 bot_token = f.read().strip()
-        self.updater = Updater(token=bot_token, use_context=True, request_kwargs=request_kwargs)
-        self.updater.dispatcher.add_handler(CommandHandler("start", self.cb_start_command)),
-        self.updater.dispatcher.add_handler(MessageHandler(Filters.text, self.cb_get_message))
-        self.updater.dispatcher.add_handler(
-            MessageHandler(
-                Filters.document.mime_type("application/json"),
-                self.cb_get_json_document,
-            )
-        )
-        self.updater.dispatcher.add_handler(CallbackQueryHandler(self.cb_opt_button))
-        self.updater.start_polling()
+        for token in bot_token.split(","):
+            updater = Updater(token=token, use_context=True, request_kwargs=request_kwargs)
+            updater.dispatcher.add_handler(CommandHandler("start", self.cb_start_command)),
+            updater.dispatcher.add_handler(MessageHandler(Filters.text, self.cb_get_message))
+            doc = "application/json"
+            updater.dispatcher.add_handler(MessageHandler(Filters.document.mime_type(doc),self.cb_get_json_document,))
+            updater.dispatcher.add_handler(CallbackQueryHandler(self.cb_opt_button))
+            updater.start_polling()
+            logging.info("Telegram bot started!" + str(updater))
+            self.updaters.append()
         Thread(target=self.no_sleep_callback).start()
-        logging.info("Telegram bot started!" + str(self.updater))
 
     def no_sleep_callback(self):
         while True:
-            try:
-                self.updater.bot.send_message(chat_id=99999999999, text="One message every minute")
-            except BadRequest:
-                pass
-            except Exception as error:
-                logging.error(error)
+            for updater in self.updaters:
+                try:
+                    updater.bot.send_message(chat_id=99999999999, text="One message every minute")
+                except BadRequest:
+                    pass
+                except Exception as error:
+                    logging.error(error)
             time.sleep(60)
 
     # =============================================================================
