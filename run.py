@@ -27,7 +27,7 @@ def setup(token, config_file_path=""):
 # Press the green button in the gutter to run the script.
 if __name__ == "__main__":
     if len(sys.argv) > 2:
-        setup(sys.argv[1], sys.argv[1])
+        setup(sys.argv[1], sys.argv[2])
     elif len(sys.argv) > 1:
         setup(sys.argv[1])
     else:

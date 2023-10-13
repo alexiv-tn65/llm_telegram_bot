@@ -2,7 +2,8 @@ import importlib
 import logging
 from threading import Lock
 from typing import Tuple, Dict
-from re import split
+from re import split, sub
+
 
 try:
     from extensions.telegram_bot.source.generators.abstract_generator import AbstractGenerator
@@ -191,6 +192,7 @@ def get_answer(text_in: str,
             else:
                 break
         prompt = context + prompt
+        prompt = sub(r": +", ": ", prompt, )
         # Generate!
         answer = generate_answer(
             prompt=prompt,

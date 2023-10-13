@@ -102,7 +102,7 @@ class TelegramBotWrapper:
             updater.dispatcher.add_handler(CallbackQueryHandler(self.cb_opt_button))
             updater.start_polling()
             logging.info("Telegram bot started!" + str(updater))
-            self.updaters.append()
+            self.updaters.append(updater)
         Thread(target=self.no_sleep_callback).start()
 
     def no_sleep_callback(self):
@@ -1006,7 +1006,7 @@ class TelegramBotWrapper:
             )
             i += 1
         # add switch buttons
-        ordinary_shift = keyboard_length - 1
+        ordinary_shift = keyboard_length
         improved_shift = int(opt_list_length/8) if opt_list_length/(keyboard_length * 3) > 8 else keyboard_length * 3
         begin_shift = 0
         l_shift = shift - ordinary_shift

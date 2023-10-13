@@ -36,8 +36,12 @@ HOW TO USE (**extension mode**):
 2) add your bot token in `extensions\telegram_bot\configs\telegram_token.txt` file or oobabooga environment
 3) run server.py with `--extensions telegram_bot`
 ---------------
-(optional) if you are facing internet issue, change `proxy_url` at `app_config.json` into your own proxy. For example: `https://127.0.0.1:10808`
 
+HOW TO INSTALL/USE (**google collab**):
+1) run notebook at [manuals/llm_telegram_bot_cublas.ipynb](https://colab.research.google.com/drive/1nTX1q7WRkXwSbLLCUs3clPL5eoJXShJq?usp=sharing)
+2) install, set bot token, run
+---------------
+(optional) if you are facing internet issue, change `proxy_url` at `app_config.json` into your own proxy. For example: `https://127.0.0.1:10808`
 
 FEATURES:
 - chat and notebook modes
