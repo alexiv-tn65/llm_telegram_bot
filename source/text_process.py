@@ -1,7 +1,9 @@
+import importlib
 import logging
 from threading import Lock
 from typing import Tuple, Dict
-import importlib
+from re import split, sub
+
 
 try:
     from extensions.telegram_bot.source.generators.abstract_generator import AbstractGenerator
@@ -27,11 +29,11 @@ debug_flag = True
 
 # ====================================================================================
 # TEXT LOGIC
-def generate_answer(text_in: str,
-                    user: User,
-                    bot_mode: str,
-                    generation_params: Dict,
-                    name_in="") -> Tuple[str, str]:
+def get_answer(text_in: str,
+               user: User,
+               bot_mode: str,
+               generation_params: Dict,
+               name_in="") -> Tuple[str, str]:
     # if generation will fail, return "fail" answer
     answer = const.GENERATOR_FAIL
     # default result action - message
@@ -62,12 +64,26 @@ def generate_answer(text_in: str,
             generator_lock.release()
             return "Added to context: " + text_in[2:], return_msg_action
         if text_in.startswith(tuple(cfg.replace_prefixes)):
-            # If user_in starts with replace_prefix - fully replace last
-            # message
-            user.history[-1] = text_in[1:]
+            # If user_in starts with replace_prefix - fully replace last message
+            user.history[-1][1] = text_in[1:]
             return_msg_action = const.MSG_DEL_LAST
             generator_lock.release()
-            return user.history[-1], return_msg_action
+            return user.history[-1][1], return_msg_action
+        if text_in == const.GENERATOR_MODE_DEL_WORD:
+            # If user_in starts with replace_prefix - fully replace last message
+            # get and change last message
+            last_message = user.history[-1][1]
+            last_word = split(r"\n+|\. +|: +|! +|\? +", last_message)[-1]
+            if len(last_word) == 0 and len(last_message) > 0:
+                last_word = " "
+            new_last_message = last_message[: -(len(last_word))]
+            new_last_message = new_last_message.strip()
+            if new_last_message.strip() == last_message.strip() or len(new_last_message)==0:
+                return_msg_action = const.MSG_NOTHING_TO_DO
+            else:
+                user.change_last_message(history_answer=new_last_message)
+            generator_lock.release()
+            return user.history[-1][1], return_msg_action
 
         # Preprocessing: actions which not depends on user input:
         if bot_mode in [const.MODE_QUERY]:
@@ -77,69 +93,63 @@ def generate_answer(text_in: str,
         if text_in == const.GENERATOR_MODE_REGENERATE:
             text_in = user.text_in[-1]
             name_in = user.name_in[-1]
-            user.truncate_last_mesage()
+            last_msg_id = user.msg_id[-1]
+            user.truncate_last_message()
+            user.msg_id.append(last_msg_id)
 
         # Preprocessing: add user_in/names/whitespaces to history in right order depends on mode:
         if bot_mode in [const.MODE_NOTEBOOK]:
-            # If notebook mode - append to history only user_in, no
-            # additional preparing;
+            # If notebook mode - append to history only user_in, no additional preparing;
             user.text_in.append(text_in)
-            user.history_add("", text_in)
+            user.history_append("", text_in)
         elif text_in == const.GENERATOR_MODE_IMPERSONATE:
-            # if impersonate - append to history only "name1:", no
-            # adding "" history line to prevent bug in history sequence,
-            # add "name1:" prefix for generation
+            # if impersonate - append to history only "name1:", no adding "" history
+            # line to prevent bug in history sequence, add "name1:" prefix for generation
             user.text_in.append(text_in)
             user.name_in.append(name_in)
-            user.history_add("", name_in + ":")
+            user.history_append("", name_in + ":")
         elif text_in == const.GENERATOR_MODE_NEXT:
-            # if user_in is "" - no user text, it is like continue generation
-            # adding "" history line to prevent bug in history sequence,
-            # add "name2:" prefix for generation
+            # if user_in is "" - no user text, it is like continue generation adding "" history line
+            #  to prevent bug in history sequence, add "name2:" prefix for generation
             user.text_in.append(text_in)
             user.name_in.append(name_in)
-            user.history_add("", user.name2 + ":")
+            user.history_append("", user.name2 + ":")
         elif text_in == const.GENERATOR_MODE_CONTINUE:
             # if user_in is "" - no user text, it is like continue generation
-            # adding "" history line to prevent bug in history sequence,
-            # add "name2:" prefix for generation
+            # adding "" history line to prevent bug in history sequence, add "name2:" prefix for generation
             pass
         elif text_in.startswith(tuple(cfg.sd_api_prefixes)):
             # If user_in starts with prefix - impersonate-like (if you try to get "impersonate view")
-            # adding "" line to prevent bug in history sequence, user_in is
-            # prefix for bot answer
+            # adding "" line to prevent bug in history sequence, user_in is prefix for bot answer
             user.msg_id.append(0)
             user.text_in.append(text_in)
             user.name_in.append(name_in)
             if len(text_in) == 1:
-                user.history_add("", cfg.sd_api_prompt_self)
+                user.history_append("", cfg.sd_api_prompt_self)
             else:
-                user.history_add("", cfg.sd_api_prompt_of.replace("OBJECT", text_in[1:].strip()))
+                user.history_append("", cfg.sd_api_prompt_of.replace("OBJECT", text_in[1:].strip()))
             return_msg_action = const.MSG_SD_API
         elif text_in.startswith(tuple(cfg.impersonate_prefixes)):
             # If user_in starts with prefix - impersonate-like (if you try to get "impersonate view")
-            # adding "" line to prevent bug in history sequence, user_in is
-            # prefix for bot answer
+            # adding "" line to prevent bug in history sequence, user_in is prefix for bot answer
 
             user.text_in.append(text_in)
             user.name_in.append(text_in[1:])
-            user.history_add("", text_in[1:] + ":")
+            user.history_append("", text_in[1:] + ":")
 
         else:
             # If not notebook/impersonate/continue mode then ordinary chat preparing
-            # add "name1&2:" to user and bot message (generation from name2
-            # point of view);
+            # add "name1&2:" to user and bot message (generation from name2 point of view);
             user.text_in.append(text_in)
             user.name_in.append(name_in)
-            user.history.append(name_in + ": " + text_in)
-            user.history.append(user.name2 + ":")
+            user.history_append(name_in + ": " + text_in, user.name2 + ":")
     except Exception as exception:
         generator_lock.release()
-        logging.error("generate_answer (prepare text part)" + str(exception))
+        logging.error("get_answer (prepare text part) " + str(exception) + str(exception.args))
 
     # Text processing with LLM
     try:
-    # Set eos_token and stopping_strings.
+        # Set eos_token and stopping_strings.
         stopping_strings = generation_params["stopping_strings"].copy()
         eos_token = generation_params["eos_token"]
         if bot_mode in [const.MODE_CHAT, const.MODE_CHAT_R, const.MODE_ADMIN]:
@@ -163,7 +173,6 @@ def generate_answer(text_in: str,
         else:
             greeting = ""
         # Make prompt: context + example + conversation history
-        prompt = ""
         available_len = generation_params["truncation_length"]
         context_len = get_tokens_count(context)
         available_len -= context_len
@@ -171,8 +180,9 @@ def generate_answer(text_in: str,
             available_len = 0
             logging.info("telegram_bot - CONTEXT IS TOO LONG!!!")
 
-        conversation = [example, greeting] + user.history
+        conversation = [example, greeting] + user.history_as_list()
 
+        prompt = ""
         for s in reversed(conversation):
             s = "\n" + s if len(s) > 0 else s
             s_len = get_tokens_count(s)
@@ -181,9 +191,10 @@ def generate_answer(text_in: str,
                 available_len -= s_len
             else:
                 break
-        prompt = context + prompt.replace("\n\n", "\n")
+        prompt = context + prompt
+        prompt = sub(r": +", ": ", prompt, )
         # Generate!
-        answer = get_answer(
+        answer = generate_answer(
             prompt=prompt,
             generation_params=generation_params,
             eos_token=eos_token,
@@ -201,15 +212,15 @@ def generate_answer(text_in: str,
             for end in stopping_strings:
                 if answer.endswith(end):
                     answer = answer[: -len(end)]
-            user.history[-1] = user.history[-1] + " " + answer
+            user.history[-1][1] = user.history[-1][1] + " " + answer
         generator_lock.release()
-        return user.history[-1], return_msg_action
+        return user.history[-1][1], return_msg_action
     except Exception as exception:
-        logging.error("generate_answer (generator part)" + str(exception))
+        logging.error("get_answer (generator part) " + str(exception) + str(exception.args))
         # anyway, release generator lock. Then return
         generator_lock.release()
         return_msg_action = const.MSG_SYSTEM
-        return user.history[-1], return_msg_action
+        return user.history[-1][1], return_msg_action
 
 
 # ====================================================================================
@@ -241,7 +252,7 @@ def init(script="generator_llama_cpp.py", model_path="", n_ctx=4096, n_gpu_layer
     generator = generator_class(model_path, n_ctx=n_ctx, n_gpu_layers=n_gpu_layers)
 
 
-def get_answer(
+def generate_answer(
         prompt,
         generation_params,
         eos_token,
@@ -267,9 +278,9 @@ def get_answer(
     generation_params.update({"turn_template": turn_template})
     if debug_flag:
         print("stopping_strings =", stopping_strings)
-        print(prompt, end="")
+        print(prompt)
     try:
-        answer = generator.get_answer(
+        answer = generator.generate_answer(
             prompt,
             generation_params,
             eos_token,

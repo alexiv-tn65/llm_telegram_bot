@@ -13,7 +13,7 @@ class Generator(AbstractGenerator):
     def __init__(self, model_path, n_ctx=2048, seed=0, n_gpu_layers=0):
         self.model_path = "like"
 
-    def get_answer(
+    def generate_answer(
         self,
         prompt,
         generation_params,
@@ -25,10 +25,10 @@ class Generator(AbstractGenerator):
     ):
         if self.model_path == "like":
             time.sleep(2)
-            answer = "😀 " + prompt + " 👍"
+            answer = "👍 " + prompt.split("\n")[-1] + " 👍"
         elif self.model_path == "dislike":
             time.sleep(2)
-            answer = "🙁 " + prompt + " 👎"
+            answer = "👎 " + prompt.split("\n")[-1] + " 👎"
         else:
             answer = "generator: model_path unknown"
         return answer
