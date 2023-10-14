@@ -5,7 +5,7 @@
 	"model_path": "/content/llm_telegram_bot/models/model_to_load_name",
 	"characters_dir_path": "/content/llm_telegram_bot/characters",
 	"default_char": "Example.yaml",
-	"presets_dir_path": "/content/llm_telegram_bot/models/presets",
+	"presets_dir_path": "/content/llm_telegram_bot/presets",
 	"default_preset": "LLaMA-ggml-Creative.txt",
 	"model_lang": "en",
 	"user_lang": "en",
