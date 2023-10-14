@@ -217,17 +217,19 @@ class TelegramBotUser:
                 self.context += f"{data['context'].strip()}\n"
             if "world_scenario" in data:
                 self.context += f"Scenario: {data['world_scenario'].strip()}\n"
+            if "scenario" in data:
+                self.context += f"Scenario: {data['scenario'].strip()}\n"
             if "personality" in data:
-                self.context += f"Personality: {data['world_scenario'].strip()}\n"
+                self.context += f"Personality: {data['personality'].strip()}\n"
             if "description" in data:
-                self.context += f"Description: {data['world_scenario'].strip()}\n"
+                self.context += f"Description: {data['description'].strip()}\n"
             #  add dialogue examples
             if "example_dialogue" in data:
                 self.example = f"\n{data['example_dialogue'].strip()}\n"
             #  add character_file greeting
             if "char_greeting" in data:
                 self.greeting = data["char_greeting"].strip()
-            if "" in data:
+            if "first_mes" in data:
                 self.greeting = data["first_mes"].strip()
             if "greeting" in data:
                 self.greeting = data["greeting"].strip()
