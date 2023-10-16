@@ -73,7 +73,7 @@ def get_answer(text_in: str,
             # If user_in starts with replace_prefix - fully replace last message
             # get and change last message
             last_message = user.history[-1][1]
-            last_word = split(r"\n+|\. +|: +|! +|\? +", last_message)[-1]
+            last_word = split(r"\n+|\. +|: +|! +|\? +|\' +|\" +|; +|\) +|\* +", last_message)[-1]
             if len(last_word) == 0 and len(last_message) > 0:
                 last_word = " "
             new_last_message = last_message[: -(len(last_word))]
