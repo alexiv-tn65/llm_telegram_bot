@@ -43,6 +43,9 @@ HOW TO INSTALL/USE (**google collab**):
 ---------------
 (optional) if you are facing internet issue, change `proxy_url` at `app_config.json` into your own proxy. For example: `https://127.0.0.1:10808`
 
+(optional) to use exllama `git clone https://github.com/turboderp/exllama llm_telegram_bot\source`
+
+
 FEATURES:
 - chat and notebook modes
 - session for all users are separative (by chat_id)

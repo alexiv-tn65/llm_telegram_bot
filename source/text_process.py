@@ -154,9 +154,9 @@ def get_answer(text_in: str,
         eos_token = generation_params["eos_token"]
         if bot_mode in [const.MODE_CHAT, const.MODE_CHAT_R, const.MODE_ADMIN]:
             stopping_strings += [
-                "\n" + name_in + ":",
-                "\n" + user.name1 + ":",
-                "\n" + user.name2 + ":",
+                name_in + ":",
+                user.name1 + ":",
+                user.name2 + ":",
             ]
 
         # adjust context/greeting/example
