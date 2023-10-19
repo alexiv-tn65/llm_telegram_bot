@@ -29,11 +29,7 @@ debug_flag = True
 
 # ====================================================================================
 # TEXT LOGIC
-def get_answer(text_in: str,
-               user: User,
-               bot_mode: str,
-               generation_params: Dict,
-               name_in="") -> Tuple[str, str]:
+def get_answer(text_in: str, user: User, bot_mode: str, generation_params: Dict, name_in="") -> Tuple[str, str]:
     # if generation will fail, return "fail" answer
     answer = const.GENERATOR_FAIL
     # default result action - message
@@ -78,7 +74,7 @@ def get_answer(text_in: str,
                 last_word = " "
             new_last_message = last_message[: -(len(last_word))]
             new_last_message = new_last_message.strip()
-            if new_last_message.strip() == last_message.strip() or len(new_last_message)==0:
+            if new_last_message.strip() == last_message.strip() or len(new_last_message) == 0:
                 return_msg_action = const.MSG_NOTHING_TO_DO
             else:
                 user.change_last_message(history_answer=new_last_message)
@@ -192,7 +188,11 @@ def get_answer(text_in: str,
             else:
                 break
         prompt = context + prompt
-        prompt = sub(r": +", ": ", prompt, )
+        prompt = sub(
+            r": +",
+            ": ",
+            prompt,
+        )
         # Generate!
         answer = generate_answer(
             prompt=prompt,
@@ -246,19 +246,15 @@ def init(script="generator_llama_cpp.py", model_path="", n_ctx=4096, n_gpu_layer
     try:
         generator_class = getattr(importlib.import_module("source.generators." + script), "Generator")
     except ImportError:
-        generator_class = getattr(importlib.import_module("extensions.telegram_bot.source.generators." + script),
-                                  "Generator")
+        generator_class = getattr(
+            importlib.import_module("extensions.telegram_bot.source.generators." + script), "Generator"
+        )
     global generator
     generator = generator_class(model_path, n_ctx=n_ctx, n_gpu_layers=n_gpu_layers)
 
 
 def generate_answer(
-        prompt,
-        generation_params,
-        eos_token,
-        stopping_strings,
-        default_answer: str,
-        turn_template=""
+    prompt, generation_params, eos_token, stopping_strings, default_answer: str, turn_template=""
 ) -> str:
     """Generate and return answer string.
 
@@ -288,8 +284,8 @@ def generate_answer(
             default_answer,
             turn_template,
         )
-    except Exception as e:
-        print("generation error:", e)
+    except Exception as exception:
+        print("generation error:", str(exception) + str(exception.args))
     if debug_flag:
         print(answer)
     return answer

@@ -18,7 +18,6 @@ class Generator(AbstractGenerator):
     preset_change_allowed = True  # if preset_file changing allowed.
 
     def __init__(self, model_path: str, n_ctx=4096, seed=0, n_gpu_layers=0):
-
         self.n_ctx = n_ctx
         self.seed = seed
         self.n_gpu_layers = n_gpu_layers
@@ -35,13 +34,15 @@ class Generator(AbstractGenerator):
 
         self.ex_config = ExLlamaConfig(self.model_config_path)  # create config from config.json
         self.ex_config.model_path = self.model_path  # supply path to model weights file
+        self.ex_config.max_seq_len = n_ctx
+        self.ex_config.max_input_len = n_ctx
+        self.ex_config.max_attention_size = n_ctx**2
         self.model = ExLlama(self.ex_config)  # create ExLlama instance and load the weights
 
         self.tokenizer = ExLlamaTokenizer(self.tokenizer_path)  # create tokenizer from tokenizer model file
 
-        self.cache = ExLlamaCache(self.model)  # create cache for inference
+        self.cache = ExLlamaCache(self.model, max_seq_len=n_ctx)  # create cache for inference
         self.generator = ExLlamaGenerator(self.model, self.tokenizer, self.cache)  # create generator
-
 
     def generate_answer(
         self, prompt, generation_params, eos_token, stopping_strings, default_answer: str, turn_template="", **kwargs
@@ -57,44 +58,48 @@ class Generator(AbstractGenerator):
             self.generator.settings.top_p = generation_params["top_p"]
             self.generator.settings.top_k = generation_params["top_k"]
             self.generator.settings.typical = generation_params["typical_p"]
+
             # Produce a simple generation
-            answer = self.generate_custom(prompt, stopping_strings=stopping_strings,
-                                          max_new_tokens=generation_params["max_new_tokens"])
-            answer = answer[len(prompt):]
+            answer = self.generate_custom(
+                prompt, stopping_strings=stopping_strings, max_new_tokens=generation_params["max_new_tokens"]
+            )
+            answer = answer[len(prompt) :]
         except Exception as exception:
-            print("generator_wrapper get answer error ", exception)
+            print("generator_wrapper get answer error ", str(exception) + str(exception.args))
         return answer
 
-    def generate_custom(self, prompt, stopping_strings:List, max_new_tokens = 128):
-
+    def generate_custom(self, prompt, stopping_strings: List, max_new_tokens=128):
         self.generator.end_beam_search()
 
-        ids, mask = self.tokenizer.encode(prompt, return_mask = True, max_seq_len = self.model.config.max_seq_len)
-        self.generator.gen_begin(ids, mask = mask)
+        ids, mask = self.tokenizer.encode(prompt, return_mask=True, max_seq_len=self.model.config.max_seq_len)
+        self.generator.gen_begin(ids, mask=mask)
 
         max_new_tokens = min(max_new_tokens, self.model.config.max_seq_len - ids.shape[1])
 
-        eos = torch.zeros((ids.shape[0],), dtype = torch.bool)
+        eos = torch.zeros((ids.shape[0],), dtype=torch.bool)
         for i in range(max_new_tokens):
-            token = self.generator.gen_single_token(mask = mask)
+            token = self.generator.gen_single_token(mask=mask)
             for j in range(token.shape[0]):
-                if token[j, 0].item() == self.tokenizer.eos_token_id: eos[j] = True
-            text = self.tokenizer.decode(self.generator.sequence[0] if self.generator.sequence.shape[0] == 1
-                                     else self.generator.sequence)
+                if token[j, 0].item() == self.tokenizer.eos_token_id:
+                    eos[j] = True
+            text = self.tokenizer.decode(
+                self.generator.sequence[0] if self.generator.sequence.shape[0] == 1 else self.generator.sequence
+            )
             # check stopping string
             for stopping in stopping_strings:
                 if text.endswith(stopping):
-                    text = text[:-len(stopping)]
+                    text = text[: -len(stopping)]
                     return text
-            if eos.all(): break
+            if eos.all():
+                break
 
-        text = self.tokenizer.decode(self.generator.sequence[0] if self.generator.sequence.shape[0] == 1
-                                     else self.generator.sequence)
+        text = self.tokenizer.decode(
+            self.generator.sequence[0] if self.generator.sequence.shape[0] == 1 else self.generator.sequence
+        )
         return text
 
-
     def tokens_count(self, text: str):
-        encoded = self.tokenizer.encode(text)
+        encoded = self.tokenizer.encode(text, max_seq_len=20480)
         return len(encoded[0])
 
     def get_model_list(self):
