@@ -69,12 +69,12 @@ def get_answer(text_in: str, user: User, bot_mode: str, generation_params: Dict,
             # If user_in starts with replace_prefix - fully replace last message
             # get and change last message
             last_message = user.history[-1][1]
-            last_word = split(r"\n+|\. +|: +|! +|\? +|\' +|\" +|; +|\) +|\* +", last_message)[-1]
-            if len(last_word) == 0 and len(last_message) > 0:
+            last_word = split(r"\n|\.+ +|: +|! +|\? +|\' +|\" +|; +|\) +|\* +", last_message)[-1]
+            if len(last_word) == 0 and len(last_message) > 1:
                 last_word = " "
             new_last_message = last_message[: -(len(last_word))]
             new_last_message = new_last_message.strip()
-            if new_last_message.strip() == last_message.strip() or len(new_last_message) == 0:
+            if len(new_last_message) == 0:
                 return_msg_action = const.MSG_NOTHING_TO_DO
             else:
                 user.change_last_message(history_answer=new_last_message)
