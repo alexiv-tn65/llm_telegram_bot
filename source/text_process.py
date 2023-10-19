@@ -243,6 +243,7 @@ def init(script="generator_llama_cpp.py", model_path="", n_ctx=4096, n_gpu_layer
       n_ctx: context length, if generator needs
       n_gpu_layers: n_gpu_layers for llama
     """
+    logging.info(f"### text_process INIT generator: {script}, model: {model_path} ###")
     try:
         generator_class = getattr(importlib.import_module("source.generators." + script), "Generator")
     except ImportError:
@@ -251,6 +252,7 @@ def init(script="generator_llama_cpp.py", model_path="", n_ctx=4096, n_gpu_layer
         )
     global generator
     generator = generator_class(model_path, n_ctx=n_ctx, n_gpu_layers=n_gpu_layers)
+    logging.info(f"### text_process INIT generator: {script}, model: {model_path} DONE ###")
 
 
 def generate_answer(

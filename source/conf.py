@@ -25,31 +25,46 @@ class Config(BaseModel):
     permanent_change_name2_prefixes: List = Field(default=["++"], description="Prefix to replace name2")
     permanent_add_context_prefixes: List = Field(default=["=="], description="Prefix to add in context")
 
-    sd_api_prefixes: List = Field(default=["📷", "📸", "📹", "🎥", "📽", ],
-                                  description="Prefix to generate image via SD API")
+    sd_api_prefixes: List = Field(
+        default=[
+            "📷",
+            "📸",
+            "📹",
+            "🎥",
+            "📽",
+        ],
+        description="Prefix to generate image via SD API",
+    )
     sd_api_prompt_of: str = "Appearance of OBJECT:"
     sd_api_prompt_self: str = "Detailed description of surroundings:"
 
     html_tag = Field(default=["<pre>", "</pre>"], description="html tags for ordinary text")
-    translate_html_tag = Field(default=['<span class="tg-spoiler">', "</span>"],
-                               description="html tags for translated text")
-    translation_as_hidden_text = Field(default="on", description="if 'on' translation showing after original message "
-                                                                 "inside translate_html_tag. "
-                                                                 "If 'off' - only translated text.")
-    language_dict: Dict[str, str] = Field(default={
-        "en": "🇬🇧",
-        "ru": "🇷🇺",
-        "ja": "🇯🇵",
-        "fr": "🇫🇷",
-        "es": "🇪🇸",
-        "de": "🇩🇪",
-        "th": "🇹🇭",
-        "tr": "🇹🇷",
-        "it": "🇮🇹",
-        "hi": "🇮🇳",
-        "zh-CN": "🇨🇳",
-        "ar": "🇸🇾",
-    }, description="Language list for translator")
+    translate_html_tag = Field(
+        default=['<span class="tg-spoiler">', "</span>"], description="html tags for translated text"
+    )
+    translation_as_hidden_text = Field(
+        default="on",
+        description="if 'on' translation showing after original message "
+        "inside translate_html_tag. "
+        "If 'off' - only translated text.",
+    )
+    language_dict: Dict[str, str] = Field(
+        default={
+            "en": "🇬🇧",
+            "ru": "🇷🇺",
+            "ja": "🇯🇵",
+            "fr": "🇫🇷",
+            "es": "🇪🇸",
+            "de": "🇩🇪",
+            "th": "🇹🇭",
+            "tr": "🇹🇷",
+            "it": "🇮🇹",
+            "hi": "🇮🇳",
+            "zh-CN": "🇨🇳",
+            "ar": "🇸🇾",
+        },
+        description="Language list for translator",
+    )
 
     # Set internal config vars
     history_dir_path = "history"
@@ -80,9 +95,13 @@ class Config(BaseModel):
     # generator initiate
 
     def load(self, config_file_path: str):
+        logging.info(f"### Config LOAD config_file_path: {config_file_path} ###")
         self.load_config_file(config_file_path)
+        logging.info(f"### Config LOAD generation_params: {self.generator_params_file_path} ###")
         self.load_generation_params(self.generator_params_file_path)
+        logging.info(f"### Config LOAD load_preset: {self.preset_file} ###")
         self.load_preset(self.preset_file)
+        logging.info(f"### Config LOAD DONE ###")
 
     def load_config_file(self, config_file_path: str):
         if os.path.exists(config_file_path):
