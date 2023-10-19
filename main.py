@@ -98,7 +98,12 @@ class TelegramBotWrapper:
             updater.dispatcher.add_handler(CommandHandler("start", self.cb_start_command)),
             updater.dispatcher.add_handler(MessageHandler(Filters.text, self.cb_get_message))
             doc = "application/json"
-            updater.dispatcher.add_handler(MessageHandler(Filters.document.mime_type(doc),self.cb_get_json_document,))
+            updater.dispatcher.add_handler(
+                MessageHandler(
+                    Filters.document.mime_type(doc),
+                    self.cb_get_json_document,
+                )
+            )
             updater.dispatcher.add_handler(CallbackQueryHandler(self.cb_opt_button))
             updater.start_polling()
             logging.info("Telegram bot started!" + str(updater))
@@ -395,7 +400,6 @@ class TelegramBotWrapper:
                 user.save_user_history(chat_id, cfg.history_dir_path)
         except Exception as e:
             logging.error(str(e))
-            raise e
         finally:
             typing.clear()
 
@@ -854,13 +858,15 @@ class TelegramBotWrapper:
 
         max_token_param = "truncation_length"
         max_tokens = cfg.generation_params[max_token_param] if max_token_param in cfg.generation_params else "???"
-        return (f"{user.name2}\n"
-                f"Conversation length {str(conversation_tokens)}/{max_tokens} tokens.\n"
-                f"(context {(str(context_tokens))}, "
-                f"greeting {(str(greeting_tokens))}, "
-                f"messages {(str(history_tokens))})\n"
-                f"Voice: {user.silero_speaker}\n"
-                f"Language: {user.language}")
+        return (
+            f"{user.name2}\n"
+            f"Conversation length {str(conversation_tokens)}/{max_tokens} tokens.\n"
+            f"(context {(str(context_tokens))}, "
+            f"greeting {(str(greeting_tokens))}, "
+            f"messages {(str(history_tokens))})\n"
+            f"Voice: {user.silero_speaker}\n"
+            f"Language: {user.language}"
+        )
 
     def on_load_voice_button(self, upd: Update, context: CallbackContext, option: str):
         chat_id = upd.callback_query.message.chat.id
@@ -1007,7 +1013,9 @@ class TelegramBotWrapper:
             i += 1
         # add switch buttons
         ordinary_shift = keyboard_length
-        improved_shift = int(opt_list_length/8) if opt_list_length/(keyboard_length * 3) > 8 else keyboard_length * 3
+        improved_shift = (
+            int(opt_list_length / 8) if opt_list_length / (keyboard_length * 3) > 8 else keyboard_length * 3
+        )
         begin_shift = 0
         l_shift = shift - ordinary_shift
         l_shift3 = shift - improved_shift

@@ -29,11 +29,7 @@ debug_flag = True
 
 # ====================================================================================
 # TEXT LOGIC
-def get_answer(text_in: str,
-               user: User,
-               bot_mode: str,
-               generation_params: Dict,
-               name_in="") -> Tuple[str, str]:
+def get_answer(text_in: str, user: User, bot_mode: str, generation_params: Dict, name_in="") -> Tuple[str, str]:
     # if generation will fail, return "fail" answer
     answer = const.GENERATOR_FAIL
     # default result action - message
@@ -73,12 +69,12 @@ def get_answer(text_in: str,
             # If user_in starts with replace_prefix - fully replace last message
             # get and change last message
             last_message = user.history[-1][1]
-            last_word = split(r"\n+|\. +|: +|! +|\? +", last_message)[-1]
+            last_word = split(r"\n+|\. +|: +|! +|\? +|\' +|\" +|; +|\) +|\* +", last_message)[-1]
             if len(last_word) == 0 and len(last_message) > 0:
                 last_word = " "
             new_last_message = last_message[: -(len(last_word))]
             new_last_message = new_last_message.strip()
-            if new_last_message.strip() == last_message.strip() or len(new_last_message)==0:
+            if new_last_message.strip() == last_message.strip() or len(new_last_message) == 0:
                 return_msg_action = const.MSG_NOTHING_TO_DO
             else:
                 user.change_last_message(history_answer=new_last_message)
@@ -154,9 +150,9 @@ def get_answer(text_in: str,
         eos_token = generation_params["eos_token"]
         if bot_mode in [const.MODE_CHAT, const.MODE_CHAT_R, const.MODE_ADMIN]:
             stopping_strings += [
-                "\n" + name_in + ":",
-                "\n" + user.name1 + ":",
-                "\n" + user.name2 + ":",
+                name_in + ":",
+                user.name1 + ":",
+                user.name2 + ":",
             ]
 
         # adjust context/greeting/example
@@ -192,7 +188,11 @@ def get_answer(text_in: str,
             else:
                 break
         prompt = context + prompt
-        prompt = sub(r": +", ": ", prompt, )
+        prompt = sub(
+            r": +",
+            ": ",
+            prompt,
+        )
         # Generate!
         answer = generate_answer(
             prompt=prompt,
@@ -246,19 +246,15 @@ def init(script="generator_llama_cpp.py", model_path="", n_ctx=4096, n_gpu_layer
     try:
         generator_class = getattr(importlib.import_module("source.generators." + script), "Generator")
     except ImportError:
-        generator_class = getattr(importlib.import_module("extensions.telegram_bot.source.generators." + script),
-                                  "Generator")
+        generator_class = getattr(
+            importlib.import_module("extensions.telegram_bot.source.generators." + script), "Generator"
+        )
     global generator
     generator = generator_class(model_path, n_ctx=n_ctx, n_gpu_layers=n_gpu_layers)
 
 
 def generate_answer(
-        prompt,
-        generation_params,
-        eos_token,
-        stopping_strings,
-        default_answer: str,
-        turn_template=""
+    prompt, generation_params, eos_token, stopping_strings, default_answer: str, turn_template=""
 ) -> str:
     """Generate and return answer string.
 
@@ -288,8 +284,8 @@ def generate_answer(
             default_answer,
             turn_template,
         )
-    except Exception as e:
-        print("generation error:", e)
+    except Exception as exception:
+        print("generation error:", str(exception) + str(exception.args))
     if debug_flag:
         print(answer)
     return answer

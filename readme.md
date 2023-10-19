@@ -1,9 +1,9 @@
 
 ![Image1](https://github.com/innightwolfsleep/storage/raw/main/textgen_telegram.PNG)
 
-WrAPPer for llama.cpp or transformers. 
+WrAPPer for llama.cpp(default), exllama or transformers. 
 &
-An EXTension for [oobabooga/text-generation-webui](https://github.com/oobabooga/text-generation-webui).
+An EXTension for [oobabooga/text-generation-webui](https://github.com/oobabooga/text-generation-webui).s
 
 Provide telegram chat with various additional functional like buttons, prefixes, voice/image generation.
 
@@ -21,6 +21,8 @@ HOW TO RUN (**standalone app**):
 3) move your model file to `models\`
 4) set **model_path** to your model in `configs\app_config.json`
 5) start `run.cmd`(windows) or `run.sh`(linux)
+
+(optional) to use exllama: `git clone https://github.com/turboderp/exllama llm_telegram_bot\source`
 
 ---------------
 HOW TO INSTALL (**extension mode**):
@@ -42,6 +44,8 @@ HOW TO INSTALL/USE (**google collab**):
 2) install, set bot token, run
 ---------------
 (optional) if you are facing internet issue, change `proxy_url` at `app_config.json` into your own proxy. For example: `https://127.0.0.1:10808`
+
+
 
 FEATURES:
 - chat and notebook modes
@@ -93,13 +97,14 @@ x_config.json
         but if you planed to use template and group chat - you shold add "\n" sign to stopping_strings to prevent bot impersonating!!!
     generator_script=GeneratorLlamaCpp
         name of generator script (generators folder):
+            - generator_exllama - based on llama-cpp-python, recommended
             - generator_llama_cpp - based on llama-cpp-python, recommended
             - generator_langchain_llama_cpp - based in langchain+llama
             - generator_transformers - based on transformers, untested
             - generator_text_generator_webui - module to integrate in oobabooga/text-generation-webui (see innightwolfsleep/text-generation-webui-telegram_bot)
             - generator_text_generator_webui_api - use oobabooga/text-generation-webui API extension
-    model_path=models\llama-13b.ggml.q4_0.bin
-        path to model .bin file
+    model_path=models\llama-13b.ggml.q4_0.gguf
+        path to model file or directory
     characters_dir_path=characters
     default_char=Example.yaml
         default cahracter and path to cahracters folder
