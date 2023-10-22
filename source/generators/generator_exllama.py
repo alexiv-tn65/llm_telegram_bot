@@ -24,8 +24,6 @@ class Generator(AbstractGenerator):
         self.model_directory = model_path
 
         # Locate files we need within that directory
-        self.model_directory = "C:\\Users\\innig\\Desktop\\llm_telegram_bot\\models\\CollectiveCognition"
-
         self.tokenizer_path = os.path.join(self.model_directory, "tokenizer.model")
         self.model_config_path = os.path.join(self.model_directory, "config.json")
         self.st_pattern = os.path.join(self.model_directory, "model.safetensors")
