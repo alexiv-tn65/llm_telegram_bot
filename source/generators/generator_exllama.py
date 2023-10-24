@@ -56,7 +56,11 @@ class Generator(AbstractGenerator):
             self.generator.settings.top_p = generation_params["top_p"]
             self.generator.settings.top_k = generation_params["top_k"]
             self.generator.settings.typical = generation_params["typical_p"]
-
+            # random seed set
+            random_data = os.urandom(4)
+            random_seed = int.from_bytes(random_data, byteorder="big")
+            torch.manual_seed(random_seed)
+            torch.cuda.manual_seed(random_seed)
             # Produce a simple generation
             answer = self.generate_custom(
                 prompt, stopping_strings=stopping_strings, max_new_tokens=generation_params["max_new_tokens"]

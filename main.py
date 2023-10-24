@@ -53,6 +53,7 @@ class TelegramBotWrapper:
         Args
             config_file_path: path to config file
         """
+        logging.info(f"### TelegramBotWrapper INIT config_file_path: {config_file_path} ###")
         # Set&Load main config file
         self.config_file_path = config_file_path
         cfg.load(self.config_file_path)
@@ -74,7 +75,8 @@ class TelegramBotWrapper:
             n_ctx=cfg.generation_params.get("chat_prompt_size", 1024),
             n_gpu_layers=cfg.generation_params.get("n_gpu_layers", 0),
         )
-        logging.info("Generator script: " + str(cfg.generator_script) + "\n" + json.dumps(cfg.generation_params))
+        logging.info(f"### TelegramBotWrapper INIT DONE ###")
+        logging.info(f"### !!! READY !!! ###")
 
     # =============================================================================
     # Run bot with token! Initiate updater obj!
@@ -108,6 +110,7 @@ class TelegramBotWrapper:
             updater.start_polling()
             logging.info("Telegram bot started!" + str(updater))
             self.updaters.append(updater)
+            logging.info(f"### TelegramBotWrapper run_telegram_bot {str(updater)} DONE ###")
         Thread(target=self.no_sleep_callback).start()
 
     def no_sleep_callback(self):
@@ -200,7 +203,7 @@ class TelegramBotWrapper:
             context.bot.get_file(upd.message.document.file_id).download(out=f)
         user.load_user_history(default_user_file_path)
         if len(user.history) > 0:
-            last_message = user.history[-1][1]
+            last_message = user.history[-1]["out"]
         else:
             last_message = "<no message in history>"
         send_text = self.make_template_message("hist_loaded", chat_id, last_message)
@@ -768,7 +771,7 @@ class TelegramBotWrapper:
         #  If there was conversation with this character_file - load history
         self.users[chat_id].find_and_load_user_char_history(chat_id, cfg.history_dir_path)
         if len(self.users[chat_id].history) > 0:
-            send_text = self.make_template_message("hist_loaded", chat_id, self.users[chat_id].history[-1][1])
+            send_text = self.make_template_message("hist_loaded", chat_id, self.users[chat_id].history[-1]["out"])
         else:
             send_text = self.make_template_message("char_loaded", chat_id)
         context.bot.send_message(

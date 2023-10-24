@@ -23,6 +23,8 @@ HOW TO RUN (**standalone app**):
 5) start `run.cmd`(windows) or `run.sh`(linux)
 
 (optional) to use exllama: `git clone https://github.com/turboderp/exllama llm_telegram_bot\source\generators\exllama`
+(optional) to use exllamav2: `git clone https://github.com/turboderp/exllamav2 llm_telegram_bot\source\generators\exllamav2`
+=======
 
 ---------------
 HOW TO INSTALL (**extension mode**):

@@ -25,31 +25,46 @@ class Config(BaseModel):
     permanent_change_name2_prefixes: List = Field(default=["++"], description="Prefix to replace name2")
     permanent_add_context_prefixes: List = Field(default=["=="], description="Prefix to add in context")
 
-    sd_api_prefixes: List = Field(default=["📷", "📸", "📹", "🎥", "📽", ],
-                                  description="Prefix to generate image via SD API")
+    sd_api_prefixes: List = Field(
+        default=[
+            "📷",
+            "📸",
+            "📹",
+            "🎥",
+            "📽",
+        ],
+        description="Prefix to generate image via SD API",
+    )
     sd_api_prompt_of: str = "Appearance of OBJECT:"
     sd_api_prompt_self: str = "Detailed description of surroundings:"
 
     html_tag = Field(default=["<pre>", "</pre>"], description="html tags for ordinary text")
-    translate_html_tag = Field(default=['<span class="tg-spoiler">', "</span>"],
-                               description="html tags for translated text")
-    translation_as_hidden_text = Field(default="on", description="if 'on' translation showing after original message "
-                                                                 "inside translate_html_tag. "
-                                                                 "If 'off' - only translated text.")
-    language_dict: Dict[str, str] = Field(default={
-        "en": "🇬🇧",
-        "ru": "🇷🇺",
-        "ja": "🇯🇵",
-        "fr": "🇫🇷",
-        "es": "🇪🇸",
-        "de": "🇩🇪",
-        "th": "🇹🇭",
-        "tr": "🇹🇷",
-        "it": "🇮🇹",
-        "hi": "🇮🇳",
-        "zh-CN": "🇨🇳",
-        "ar": "🇸🇾",
-    }, description="Language list for translator")
+    translate_html_tag = Field(
+        default=['<span class="tg-spoiler">', "</span>"], description="html tags for translated text"
+    )
+    translation_as_hidden_text = Field(
+        default="on",
+        description="if 'on' translation showing after original message "
+        "inside translate_html_tag. "
+        "If 'off' - only translated text.",
+    )
+    language_dict: Dict[str, str] = Field(
+        default={
+            "en": "🇬🇧",
+            "ru": "🇷🇺",
+            "ja": "🇯🇵",
+            "fr": "🇫🇷",
+            "es": "🇪🇸",
+            "de": "🇩🇪",
+            "th": "🇹🇭",
+            "tr": "🇹🇷",
+            "it": "🇮🇹",
+            "hi": "🇮🇳",
+            "zh-CN": "🇨🇳",
+            "ar": "🇸🇾",
+        },
+        description="Language list for translator",
+    )
 
     # Set internal config vars
     history_dir_path = "history"
@@ -68,6 +83,10 @@ class Config(BaseModel):
     user_name_template = ""  # template for username. "" - default (You), FIRSTNAME, LASTNAME, USERNAME, ID
     generator_script = ""  # mode loaded from config
     model_path = ""
+    context_prompt_begin = ""
+    context_prompt_end = ""
+    message_prompt_begin = ""
+    message_prompt_end = ""
     # Set default character json file
     character_file = "Example.yaml"
     preset_file = "LLaMA-Creative.txt"
@@ -80,9 +99,13 @@ class Config(BaseModel):
     # generator initiate
 
     def load(self, config_file_path: str):
+        logging.info(f"### Config LOAD config_file_path: {config_file_path} ###")
         self.load_config_file(config_file_path)
+        logging.info(f"### Config LOAD generation_params: {self.generator_params_file_path} ###")
         self.load_generation_params(self.generator_params_file_path)
+        logging.info(f"### Config LOAD load_preset: {self.preset_file} ###")
         self.load_preset(self.preset_file)
+        logging.info(f"### Config LOAD DONE ###")
 
     def load_config_file(self, config_file_path: str):
         if os.path.exists(config_file_path):
@@ -92,6 +115,10 @@ class Config(BaseModel):
                 self.user_name_template = config.get("user_name_template", self.user_name_template)
                 self.generator_script = config.get("generator_script", self.generator_script)
                 self.model_path = config.get("model_path", self.model_path)
+                self.context_prompt_begin = config.get("context_prompt_begin", self.context_prompt_begin)
+                self.context_prompt_end = config.get("context_prompt_end", self.context_prompt_end)
+                self.message_prompt_begin = config.get("message_prompt_begin", self.message_prompt_begin)
+                self.message_prompt_end = config.get("message_prompt_end", self.message_prompt_end)
                 self.presets_dir_path = config.get("presets_dir_path", self.presets_dir_path)
                 self.preset_file = config.get("preset_file", self.preset_file)
                 self.characters_dir_path = config.get("characters_dir_path", self.characters_dir_path)

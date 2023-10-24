@@ -2,7 +2,7 @@ import json
 import time
 from os.path import exists
 from pathlib import Path
-from typing import List
+from typing import List, Dict
 
 import yaml
 
@@ -46,7 +46,7 @@ class TelegramBotUser:
         self.turn_template: str = turn_template
         self.text_in: List[str] = []  # "user input history": ["Hi!","Who are you?"], need for regenerate option
         self.name_in: List[str] = []  # user_name history need to correct regenerate option
-        self.history: List[List[str]] = []  # "history": [["query1", "answer1"],["query2", "answer2"]...],
+        self.history: List[Dict[str]] = []  # "history": [["in": "query1", "out": "answer1"],["in": "query2",...
         self.msg_id: List[int] = []  # "msg_id": [143, 144, 145, 146],
         self.greeting: str = greeting  # "hello" or something
         self.last_msg_timestamp: int = 0  # last message timestamp to avoid message flood.
@@ -68,17 +68,17 @@ class TelegramBotUser:
         return user_in, msg_id
 
     def history_append(self, message="", answer=""):
-        self.history.append([message, answer])
+        self.history.append({"in": message, "out": answer})
 
     def history_as_str(self) -> str:
         history = ""
         if len(self.history) == 0:
             return history
         for s in self.history:
-            if len(s[0]) > 0:
-                history += s[0]
-            if len(s[-1]) > 0:
-                history += s[-1]
+            if len(s["in"]) > 0:
+                history += s["in"]
+            if len(s["out"]) > 0:
+                history += s["out"]
         return history
 
     def history_as_list(self) -> list:
@@ -86,10 +86,10 @@ class TelegramBotUser:
         if len(self.history) == 0:
             return history_list
         for s in self.history:
-            if len(s[0]) > 0:
-                history_list.append(s[0])
-            if len(s[-1]) > 0:
-                history_list.append(s[1])
+            if len(s["in"]) > 0:
+                history_list.append(s["in"])
+            if len(s["out"]) > 0:
+                history_list.append(s["out"])
         return history_list
 
     def change_last_message(self, text_in=None, name_in=None, history_message=None, history_answer=None, msg_id=None):
@@ -98,9 +98,9 @@ class TelegramBotUser:
         if name_in:
             self.name_in[-1] = name_in
         if history_message:
-            self.history[-1][0] = history_message
+            self.history[-1]["in"] = history_message
         if history_answer:
-            self.history[-1][-1] = history_answer
+            self.history[-1]["out"] = history_answer
         if msg_id:
             self.msg_id[-1] = msg_id
 
