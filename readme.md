@@ -22,7 +22,7 @@ HOW TO RUN (**standalone app**):
 4) set **model_path** to your model in `configs\app_config.json`
 5) start `run.cmd`(windows) or `run.sh`(linux)
 
-(optional) to use exllama: `git clone https://github.com/turboderp/exllama llm_telegram_bot\source\generators`
+(optional) to use exllama: `git clone https://github.com/turboderp/exllama llm_telegram_bot\source\generators\exllama`
 
 ---------------
 HOW TO INSTALL (**extension mode**):
