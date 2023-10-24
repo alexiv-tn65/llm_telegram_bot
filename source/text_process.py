@@ -61,14 +61,14 @@ def get_answer(text_in: str, user: User, bot_mode: str, generation_params: Dict,
             return "Added to context: " + text_in[2:], return_msg_action
         if text_in.startswith(tuple(cfg.replace_prefixes)):
             # If user_in starts with replace_prefix - fully replace last message
-            user.history[-1][1] = text_in[1:]
+            user.history[-1]["out"] = text_in[1:]
             return_msg_action = const.MSG_DEL_LAST
             generator_lock.release()
-            return user.history[-1][1], return_msg_action
+            return user.history[-1]["out"], return_msg_action
         if text_in == const.GENERATOR_MODE_DEL_WORD:
             # If user_in starts with replace_prefix - fully replace last message
             # get and change last message
-            last_message = user.history[-1][1]
+            last_message = user.history[-1]["out"]
             last_word = split(r"\n|\.+ +|: +|! +|\? +|\' +|\" +|; +|\) +|\* +", last_message)[-1]
             if len(last_word) == 0 and len(last_message) > 1:
                 last_word = " "
@@ -79,7 +79,7 @@ def get_answer(text_in: str, user: User, bot_mode: str, generation_params: Dict,
             else:
                 user.change_last_message(history_answer=new_last_message)
             generator_lock.release()
-            return user.history[-1][1], return_msg_action
+            return user.history[-1]["out"], return_msg_action
 
         # Preprocessing: actions which not depends on user input:
         if bot_mode in [const.MODE_QUERY]:
@@ -154,12 +154,15 @@ def get_answer(text_in: str, user: User, bot_mode: str, generation_params: Dict,
                 user.name1 + ":",
                 user.name2 + ":",
             ]
+        if cfg.message_prompt_end != "":
+            stopping_strings.append(cfg.message_prompt_end)
 
         # adjust context/greeting/example
         if user.context.strip().endswith("\n"):
             context = f"{user.context.strip()}"
         else:
             context = f"{user.context.strip()}\n"
+        context = cfg.context_prompt_begin + context + cfg.context_prompt_end
         if len(user.example) > 0:
             example = user.example + "\n<START>\n"
         else:
@@ -180,7 +183,7 @@ def get_answer(text_in: str, user: User, bot_mode: str, generation_params: Dict,
 
         prompt = ""
         for s in reversed(conversation):
-            s = "\n" + s if len(s) > 0 else s
+            s = "\n" + cfg.message_prompt_begin + s + cfg.message_prompt_end if len(s) > 0 else s
             s_len = get_tokens_count(s)
             if available_len >= s_len:
                 prompt = s + prompt
@@ -203,6 +206,8 @@ def get_answer(text_in: str, user: User, bot_mode: str, generation_params: Dict,
             turn_template=user.turn_template,
         )
         # If generation result zero length - return  "Empty answer."
+        if cfg.message_prompt_end != "" and answer.endswith(cfg.message_prompt_end):
+            answer = answer[: -len(cfg.message_prompt_end)]
         if len(answer) < 1:
             answer = const.GENERATOR_EMPTY_ANSWER
         # Final return
@@ -212,15 +217,15 @@ def get_answer(text_in: str, user: User, bot_mode: str, generation_params: Dict,
             for end in stopping_strings:
                 if answer.endswith(end):
                     answer = answer[: -len(end)]
-            user.history[-1][1] = user.history[-1][1] + " " + answer
+            user.history[-1]["out"] = user.history[-1]["out"] + " " + answer
         generator_lock.release()
-        return user.history[-1][1], return_msg_action
+        return user.history[-1]["out"], return_msg_action
     except Exception as exception:
         logging.error("get_answer (generator part) " + str(exception) + str(exception.args))
         # anyway, release generator lock. Then return
         generator_lock.release()
         return_msg_action = const.MSG_SYSTEM
-        return user.history[-1][1], return_msg_action
+        return user.history[-1]["out"], return_msg_action
 
 
 # ====================================================================================

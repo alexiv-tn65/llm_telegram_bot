@@ -76,6 +76,7 @@ class TelegramBotWrapper:
             n_gpu_layers=cfg.generation_params.get("n_gpu_layers", 0),
         )
         logging.info(f"### TelegramBotWrapper INIT DONE ###")
+        logging.info(f"### !!! READY !!! ###")
 
     # =============================================================================
     # Run bot with token! Initiate updater obj!
@@ -202,7 +203,7 @@ class TelegramBotWrapper:
             context.bot.get_file(upd.message.document.file_id).download(out=f)
         user.load_user_history(default_user_file_path)
         if len(user.history) > 0:
-            last_message = user.history[-1][1]
+            last_message = user.history[-1]["out"]
         else:
             last_message = "<no message in history>"
         send_text = self.make_template_message("hist_loaded", chat_id, last_message)
@@ -770,7 +771,7 @@ class TelegramBotWrapper:
         #  If there was conversation with this character_file - load history
         self.users[chat_id].find_and_load_user_char_history(chat_id, cfg.history_dir_path)
         if len(self.users[chat_id].history) > 0:
-            send_text = self.make_template_message("hist_loaded", chat_id, self.users[chat_id].history[-1][1])
+            send_text = self.make_template_message("hist_loaded", chat_id, self.users[chat_id].history[-1]["out"])
         else:
             send_text = self.make_template_message("char_loaded", chat_id)
         context.bot.send_message(

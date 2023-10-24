@@ -83,6 +83,10 @@ class Config(BaseModel):
     user_name_template = ""  # template for username. "" - default (You), FIRSTNAME, LASTNAME, USERNAME, ID
     generator_script = ""  # mode loaded from config
     model_path = ""
+    context_prompt_begin = ""
+    context_prompt_end = ""
+    message_prompt_begin = ""
+    message_prompt_end = ""
     # Set default character json file
     character_file = "Example.yaml"
     preset_file = "LLaMA-Creative.txt"
@@ -111,6 +115,10 @@ class Config(BaseModel):
                 self.user_name_template = config.get("user_name_template", self.user_name_template)
                 self.generator_script = config.get("generator_script", self.generator_script)
                 self.model_path = config.get("model_path", self.model_path)
+                self.context_prompt_begin = config.get("context_prompt_begin", self.context_prompt_begin)
+                self.context_prompt_end = config.get("context_prompt_end", self.context_prompt_end)
+                self.message_prompt_begin = config.get("message_prompt_begin", self.message_prompt_begin)
+                self.message_prompt_end = config.get("message_prompt_end", self.message_prompt_end)
                 self.presets_dir_path = config.get("presets_dir_path", self.presets_dir_path)
                 self.preset_file = config.get("preset_file", self.preset_file)
                 self.characters_dir_path = config.get("characters_dir_path", self.characters_dir_path)
