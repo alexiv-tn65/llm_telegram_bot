@@ -23,7 +23,10 @@ HOW TO RUN (**standalone app**):
 5) start `run.cmd`(windows) or `run.sh`(linux)
 
 (optional) to use exllama: `git clone https://github.com/turboderp/exllama llm_telegram_bot\source\generators\exllama`
+
 (optional) to use exllamav2: `git clone https://github.com/turboderp/exllamav2 llm_telegram_bot\source\generators\exllamav2`
+
+(optional) to use llama.cpp with GPU acceleration reinstall abetlen/llama-cpp-python by guide: [llama-cpp-python#installation-with-hardware-acceleration](https://github.com/abetlen/llama-cpp-python#installation-with-hardware-acceleration)
 
 ---------------
 HOW TO INSTALL (**extension mode**):

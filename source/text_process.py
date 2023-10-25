@@ -11,11 +11,11 @@ except ImportError:
     from source.generators.abstract_generator import AbstractGenerator
 
 try:
-    from extensions.telegram_bot.source.user import TelegramBotUser as User
+    from extensions.telegram_bot.source.user import User as User
     import extensions.telegram_bot.source.const as const
     from extensions.telegram_bot.source.conf import cfg
 except ImportError:
-    from source.user import TelegramBotUser as User
+    from source.user import User as User
     import source.const as const
     from source.conf import cfg
 
@@ -154,8 +154,8 @@ def get_answer(text_in: str, user: User, bot_mode: str, generation_params: Dict,
                 user.name1 + ":",
                 user.name2 + ":",
             ]
-        if cfg.message_prompt_end != "":
-            stopping_strings.append(cfg.message_prompt_end)
+        if cfg.bot_prompt_end != "":
+            stopping_strings.append(cfg.bot_prompt_end)
 
         # adjust context/greeting/example
         if user.context.strip().endswith("\n"):
@@ -164,7 +164,7 @@ def get_answer(text_in: str, user: User, bot_mode: str, generation_params: Dict,
             context = f"{user.context.strip()}\n"
         context = cfg.context_prompt_begin + context + cfg.context_prompt_end
         if len(user.example) > 0:
-            example = user.example + "\n<START>\n"
+            example = user.example
         else:
             example = ""
         if len(user.greeting) > 0:
@@ -179,11 +179,16 @@ def get_answer(text_in: str, user: User, bot_mode: str, generation_params: Dict,
             available_len = 0
             logging.info("telegram_bot - CONTEXT IS TOO LONG!!!")
 
-        conversation = [example, greeting] + user.history_as_list()
+        conversation = [example, greeting]
+        for i in user.history:
+            if len(i["in"]) > 0:
+                conversation.append("".join([cfg.user_prompt_begin, i["in"], cfg.user_prompt_end]))
+            if len(i["out"]) > 0:
+                conversation.append("".join([cfg.bot_prompt_begin, i["out"], cfg.bot_prompt_end]))
 
         prompt = ""
         for s in reversed(conversation):
-            s = "\n" + cfg.message_prompt_begin + s + cfg.message_prompt_end if len(s) > 0 else s
+            s = "\n" + cfg.bot_prompt_begin + s + cfg.bot_prompt_end if len(s) > 0 else s
             s_len = get_tokens_count(s)
             if available_len >= s_len:
                 prompt = s + prompt
@@ -206,8 +211,8 @@ def get_answer(text_in: str, user: User, bot_mode: str, generation_params: Dict,
             turn_template=user.turn_template,
         )
         # If generation result zero length - return  "Empty answer."
-        if cfg.message_prompt_end != "" and answer.endswith(cfg.message_prompt_end):
-            answer = answer[: -len(cfg.message_prompt_end)]
+        if cfg.bot_prompt_end != "" and answer.endswith(cfg.bot_prompt_end):
+            answer = answer[: -len(cfg.bot_prompt_end)]
         if len(answer) < 1:
             answer = const.GENERATOR_EMPTY_ANSWER
         # Final return

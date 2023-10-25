@@ -10,11 +10,11 @@ from deep_translator import GoogleTranslator as Translator
 try:
     import extensions.telegram_bot.source.const as const
     from extensions.telegram_bot.source.conf import cfg
-    from extensions.telegram_bot.source.user import TelegramBotUser as User
+    from extensions.telegram_bot.source.user import User as User
 except ImportError:
     import source.const as const
     from source.conf import cfg
-    from source.user import TelegramBotUser as User, TelegramBotUser
+    from source.user import User as User, User
 
 
 def prepare_text(original_text: str, user: User, direction="to_user"):

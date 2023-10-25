@@ -7,7 +7,7 @@ from typing import List, Dict
 import yaml
 
 
-class TelegramBotUser:
+class User:
     """
     Class stored individual tg user info (history, message sequence, etc...) and provide some actions
     """
