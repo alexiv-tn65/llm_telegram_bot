@@ -5,9 +5,9 @@ import torch
 from num2words import num2words
 
 try:
-    from extensions.telegram_bot.source.user import TelegramBotUser as User
+    from extensions.telegram_bot.source.user import User as User
 except ImportError:
-    from source.user import TelegramBotUser as User
+    from source.user import User as User
 
 
 class Silero:

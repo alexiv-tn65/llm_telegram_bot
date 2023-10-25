@@ -28,8 +28,6 @@ HOW TO RUN (**standalone app**):
 
 (optional) to use llama.cpp with GPU acceleration reinstall abetlen/llama-cpp-python by guide: [llama-cpp-python#installation-with-hardware-acceleration](https://github.com/abetlen/llama-cpp-python#installation-with-hardware-acceleration)
 
-
-
 ---------------
 HOW TO INSTALL (**extension mode**):
 1) obviously, install  [oobabooga/text-generation-webui](https://github.com/oobabooga/text-generation-webui) first, add model, set all options you need

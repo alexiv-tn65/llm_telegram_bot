@@ -27,7 +27,7 @@ try:
     import extensions.telegram_bot.source.const as const
     import extensions.telegram_bot.source.utils as utils
     from extensions.telegram_bot.source.conf import cfg
-    from extensions.telegram_bot.source.user import TelegramBotUser as User
+    from extensions.telegram_bot.source.user import User as User
     from extensions.telegram_bot.source.extension.silero import Silero as Silero
     from extensions.telegram_bot.source.extension.sd_api import SdApi as SdApi
 except ImportError:
@@ -35,7 +35,7 @@ except ImportError:
     import source.const as const
     import source.utils as utils
     from source.conf import cfg
-    from source.user import TelegramBotUser as User
+    from source.user import User as User
     from source.extension.silero import Silero as Silero
     from source.extension.sd_api import SdApi as SdApi
 

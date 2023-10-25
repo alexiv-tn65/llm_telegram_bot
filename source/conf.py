@@ -85,8 +85,10 @@ class Config(BaseModel):
     model_path = ""
     context_prompt_begin = ""
     context_prompt_end = ""
-    message_prompt_begin = ""
-    message_prompt_end = ""
+    bot_prompt_begin = ""
+    bot_prompt_end = ""
+    user_prompt_begin = ""
+    user_prompt_end = ""
     # Set default character json file
     character_file = "Example.yaml"
     preset_file = "LLaMA-Creative.txt"
@@ -117,8 +119,10 @@ class Config(BaseModel):
                 self.model_path = config.get("model_path", self.model_path)
                 self.context_prompt_begin = config.get("context_prompt_begin", self.context_prompt_begin)
                 self.context_prompt_end = config.get("context_prompt_end", self.context_prompt_end)
-                self.message_prompt_begin = config.get("message_prompt_begin", self.message_prompt_begin)
-                self.message_prompt_end = config.get("message_prompt_end", self.message_prompt_end)
+                self.bot_prompt_begin = config.get("bot_prompt_begin", self.bot_prompt_begin)
+                self.bot_prompt_end = config.get("bot_prompt_end", self.bot_prompt_end)
+                self.user_prompt_begin = config.get("user_prompt_begin", self.user_prompt_begin)
+                self.user_prompt_end = config.get("user_prompt_end", self.user_prompt_end)
                 self.presets_dir_path = config.get("presets_dir_path", self.presets_dir_path)
                 self.preset_file = config.get("preset_file", self.preset_file)
                 self.characters_dir_path = config.get("characters_dir_path", self.characters_dir_path)
