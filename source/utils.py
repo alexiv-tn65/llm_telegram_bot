@@ -26,9 +26,9 @@ def prepare_text(original_text: str, user: User, direction="to_user"):
                 text = Translator(source=user.language, target=cfg.model_lang).translate(text)
             elif direction == "to_user":
                 text = Translator(source=cfg.model_lang, target=user.language).translate(text)
-        except Exception as e:
+        except Exception as exception:
             text = "can't translate text:" + str(text)
-            logging.error("translator_error" + str(e))
+            logging.error("translator_error:\n" + str(exception) + "\n" + str(exception.args))
     # Add HTML tags and other...
     if direction not in ["to_model", "no_html"]:
         text = text.replace("#", "&#35;").replace("<", "&#60;").replace(">", "&#62;")
