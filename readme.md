@@ -61,6 +61,7 @@ HOW TO INSTALL/USE (**google collab**):
 
 
 FEATURES:
+- chat templates (see [manuals/custom_prompt_templates.md])
 - chat and notebook modes
 - session for all users are separative (by chat_id)
 - local session history - conversation won't be lost if server restarts. Separated history between users and chars.
