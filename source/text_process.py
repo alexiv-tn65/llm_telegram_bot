@@ -213,9 +213,11 @@ def get_answer(text_in: str, user: User, bot_mode: str, generation_params: Dict,
             turn_template=user.turn_template,
         )
         # Truncate prompt prefix/postfix
-        if cfg.bot_prompt_end != "" and answer.endswith(cfg.bot_prompt_end):
+        if len(cfg.bot_prompt_end) > 0 and answer.endswith(cfg.bot_prompt_end):
             answer = answer[: -len(cfg.bot_prompt_end)]
-        if cfg.bot_prompt_begin != "" and answer.startswith(cfg.bot_prompt_begin):
+        if len(cfg.bot_prompt_end) > 2 and answer.endswith(cfg.bot_prompt_end[:-1]):
+            answer = answer[: -len(cfg.bot_prompt_end[:-1])]
+        if len(cfg.bot_prompt_begin) > 0 and answer.startswith(cfg.bot_prompt_begin):
             answer = answer[: -len(cfg.bot_prompt_begin)]
         # If generation result zero length - return  "Empty answer."
         if len(answer) < 1:
