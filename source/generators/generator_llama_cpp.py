@@ -1,5 +1,6 @@
-from llama_cpp import Llama
 import os
+
+from llama_cpp import Llama
 
 try:
     from extensions.telegram_bot.source.generators.abstract_generator import AbstractGenerator
@@ -55,5 +56,5 @@ class Generator(AbstractGenerator):
         return bins
 
     def load_model(self, model_file: str):
-        with open("models\\" + model_file, "r") as model:
+        with open(os.path.normpath("models\\" + model_file), "r") as model:
             self.llm: Llama = Llama(model_path=model.read(), n_ctx=self.n_ctx, seed=self.seed)
