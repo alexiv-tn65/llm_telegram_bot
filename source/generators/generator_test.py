@@ -30,7 +30,7 @@ class Generator(AbstractGenerator):
             time.sleep(2)
             answer = "👎 " + prompt.split("\n")[-1] + " 👎"
         else:
-            answer = "generator: model_path unknown"
+            answer = prompt.split("\n")[-1]
         return answer
 
     def tokens_count(self, text: str):
@@ -41,4 +41,3 @@ class Generator(AbstractGenerator):
 
     def load_model(self, model_file: str):
         self.model_path = model_file
-
